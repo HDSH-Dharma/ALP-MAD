@@ -16,6 +16,7 @@ final class Trip {
     var endDate: Date
     var currency: String
  
+    @Relationship(deleteRule: .cascade) var destinations: [Destination] = []
     @Relationship(deleteRule: .cascade, inverse: \BudgetItem.trip)
     var budgetItems: [BudgetItem]
  
