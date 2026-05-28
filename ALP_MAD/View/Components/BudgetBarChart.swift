@@ -9,12 +9,9 @@ import SwiftUI
 import Charts
 
 struct BudgetBarChart: View {
-    let trip: Trip
+    let breakdown: [(category: BudgetCategory, total: Double, percentage: Double)]
+    let currency: String
     let vm: BudgetViewModel
- 
-    private var breakdown: [(category: BudgetCategory, total: Double, percentage: Double)] {
-        vm.categoryBreakdown(for: trip)
-    }
  
     var body: some View {
         Chart(breakdown, id: \.category) { item in
@@ -25,7 +22,7 @@ struct BudgetBarChart: View {
             .foregroundStyle(item.category.swiftUIColor)
             .cornerRadius(6)
             .annotation(position: .top) {
-                Text(vm.formatCurrency(item.total, currency: trip.currency))
+                Text(vm.formatCurrency(item.total, currency: currency))
                     .font(.system(size: 9))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

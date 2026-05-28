@@ -32,6 +32,10 @@ struct BudgetDetailView: View {
         return sorted
     }
 
+    private var breakdown: [(category: BudgetCategory, total: Double, percentage: Double)] {
+        vm.categoryBreakdown(for: trip)
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -58,19 +62,22 @@ struct BudgetDetailView: View {
 
                         if chartMode == .donut {
                             BudgetDonutChart(
-                                trip: trip,
-                                vm:   vm
+                                breakdown:   breakdown,
+                                totalBudget: vm.totalBudget(for: trip),
+                                currency:    trip.currency,
+                                vm:          vm
                             )
                         } else {
                             BudgetBarChart(
-                                trip: trip,
-                                vm:   vm
+                                breakdown: breakdown,
+                                currency:  trip.currency,
+                                vm:        vm
                             )
                         }
 
                         // Legend
                         VStack(spacing: 0) {
-                            ForEach(vm.categoryBreakdown(for: trip), id: \.category) { item in
+                            ForEach(breakdown, id: \.category) { item in
                                 CategoryLegendRow(item: item, currency: trip.currency, vm: vm)
                                     .contentShape(Rectangle())
                                     .onTapGesture {

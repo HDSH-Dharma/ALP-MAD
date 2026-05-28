@@ -9,12 +9,10 @@ import SwiftUI
 import Charts
 
 struct BudgetDonutChart: View {
-    let trip: Trip
+    let breakdown: [(category: BudgetCategory, total: Double, percentage: Double)]
+    let totalBudget: Double
+    let currency: String
     let vm: BudgetViewModel
- 
-    private var breakdown: [(category: BudgetCategory, total: Double, percentage: Double)] {
-        vm.categoryBreakdown(for: trip)
-    }
  
     var body: some View {
         ZStack {
@@ -33,7 +31,7 @@ struct BudgetDonutChart: View {
                 Text("Total")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text(vm.formatCurrency(vm.totalBudget(for: trip), currency: trip.currency))
+                Text(vm.formatCurrency(totalBudget, currency: currency))
                     .font(.headline)
                     .fontWeight(.bold)
                     .minimumScaleFactor(0.6)
