@@ -1,0 +1,63 @@
+//
+//  AddTripView.swift
+//  ALP_MAD
+//
+//  Created by Dharma on 28/05/26.
+//
+
+
+import SwiftUI
+
+struct AddTripView: View {
+    @Environment(\.modelContext) private var context
+    @Environment(\.dismiss)      private var dismiss
+
+    @Bindable var vm: BudgetViewModel
+
+    let currencies = ["IDR", "USD", "EUR", "SGD", "JPY", "AUD", "MYR"]
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Trip Info") {
+                    TextField("Trip Name (e.g. Bali Summer 2026)", text: $vm.tripName)
+                        .textInputAutocapitalization(.words)
+                    TextField("Destination", text: $vm.tripDestination)
+                        .textInputAutocapitalization(.words)
+                }
+
+                Section("Dates") {
+                    DatePicker("Departure", selection: $vm.tripStartDate, displayedComponents: .date)
+                    DatePicker("Return",    selection: $vm.tripEndDate,   in: vm.tripStartDate..., displayedComponents: .date)
+                }
+
+                Section("Currency") {
+                    Picker("Currency", selection: $vm.tripCurrency) {
+                        ForEach(currencies, id: \.self) { c in
+                            Text(c).tag(c)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+            }
+            .navigationTitle("New Trip")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        vm.clearTripForm()
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create") {
+                        vm.addTrip(context: context)
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                    .disabled(!vm.isTripFormValid)
+                }
+            }
+        }
+    }
+}
