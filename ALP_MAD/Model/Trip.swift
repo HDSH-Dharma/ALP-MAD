@@ -8,7 +8,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Trip {
+final class Trip: Hashable {
     var id: UUID
     var name: String
     var destination: String
@@ -39,6 +39,13 @@ final class Trip {
         self.destinations = []
     }
  
+    static func == (lhs: Trip, rhs: Trip) -> Bool {
+        lhs.persistentModelID == rhs.persistentModelID
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(persistentModelID)
+    }
 
 }
 extension Trip {

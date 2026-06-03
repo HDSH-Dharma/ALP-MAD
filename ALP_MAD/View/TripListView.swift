@@ -15,55 +15,56 @@ struct TripListView: View {
     @Query(sort: \Trip.startDate, order: .reverse) private var trips: [Trip]
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if trips.isEmpty {
-                    emptyState
-                } else {
-                    List {
-                        ForEach(trips) { trip in
-                            NavigationLink {
-                                #if os(watchOS)
-                                WatchBudgetDetailView(trip: trip)
-                                #else
-                                TripDetailTabView(trip: trip)
-                                #endif
-                            } label: {
-                                TripListRow(trip: trip)
+            NavigationStack {
+                Group {
+                    if trips.isEmpty {
+                        emptyState
+                    } else {
+                        List {
+                            ForEach(trips) { trip in
+                                NavigationLink(value: trip) {
+                                    TripListRow(trip: trip)
+                                }
                             }
                         }
+                        #if os(watchOS)
+                        .listStyle(.plain)
+                        #else
+                        .listStyle(.insetGrouped)
+                        #endif
                     }
+                }
+                .navigationTitle("My Trips")
+                .navigationDestination(for: Trip.self) { trip in
                     #if os(watchOS)
-                    .listStyle(.plain)
+                    WatchBudgetDetailView(trip: trip)
                     #else
-                    .listStyle(.insetGrouped)
+                    TripDetailTabView(trip: trip)
                     #endif
                 }
-            }
-            .navigationTitle("My Trips")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        vm.showAddTrip = true
-                    } label: {
-                        Label("New Trip", systemImage: "plus")
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            vm.showAddTrip = true
+                        } label: {
+                            Label("New Trip", systemImage: "plus")
+                        }
                     }
                 }
-            }
-            .sheet(isPresented: Bindable(vm).showAddTrip) {
-                AddTripView()
-                #if !os(watchOS)
-                   .presentationDetents([.medium, .large])
-                #endif
-            }
-            .onAppear {
-                WatchConnectivityManager.shared.sendTrips(trips)
-            }
-            .onChange(of: trips) { _, newTrips in
-                WatchConnectivityManager.shared.sendTrips(newTrips)
+                .sheet(isPresented: Bindable(vm).showAddTrip) {
+                    AddTripView()
+                    #if !os(watchOS)
+                       .presentationDetents([.medium, .large])
+                    #endif
+                }
+                .onAppear {
+                    WatchConnectivityManager.shared.sendTrips(trips)
+                }
+                .onChange(of: trips) { _, newTrips in
+                    WatchConnectivityManager.shared.sendTrips(newTrips)
+                }
             }
         }
-    }
 
     private var emptyState: some View {
         VStack(spacing: 20) {

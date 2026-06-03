@@ -12,24 +12,41 @@ import SwiftData
 struct TripDetailTabView: View {
     let trip: Trip
     
+    @State private var activeTab: Int = 0
+    
+    @Environment(BudgetViewModel.self) private var vm
+    
     var body: some View {
-        TabView {
+        TabView(selection: $activeTab) {
             // TAB 1: Itinerary Canvas / Days List
             TripDaysDetailView(trip: trip)
                 .tabItem {
                     Label("Itinerary", systemImage: "map.fill")
                 }
+                .tag(0)
             
             // TAB 2: Budgeting Dashboard
             BudgetDetailView(trip: trip)
                 .tabItem {
                     Label("Budget", systemImage: "creditcard.fill")
                 }
+                .tag(1)
         }
-        // Tint color for active tab items (adjust to your project's custom asset themes)
-        .accentColor(.blue) 
-        // Hides the automatic back button item title if needed, letting the child view manage it
+        .accentColor(.blue)
+        .navigationTitle(trip.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if activeTab == 1 {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        vm.showAddItem = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title3)
+                    }
+                }
+            }
+        }
     }
 }
 

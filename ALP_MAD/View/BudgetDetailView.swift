@@ -12,7 +12,7 @@ import Charts
 
 struct BudgetDetailView: View {
     @Environment(\.modelContext)       private var context
-    @Environment(BudgetViewModel.self) private var vm    
+    @Environment(BudgetViewModel.self) private var vm
 
     let trip: Trip
 
@@ -104,6 +104,7 @@ struct BudgetDetailView: View {
     }
     
     var body: some View {
+        @Bindable var vm = vm
         ScrollView {
             VStack(spacing: 20) {
                 // MARK: Header card
@@ -195,10 +196,8 @@ struct BudgetDetailView: View {
             }
             .padding(.top)
         }
-        .navigationTitle(trip.name)
-        .navigationBarTitleDisplayMode(.large)
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     vm.showAddItem = true
                 } label: {
