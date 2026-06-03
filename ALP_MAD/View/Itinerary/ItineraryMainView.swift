@@ -39,7 +39,7 @@ struct ItineraryMainView: View {
                                     }
                                     
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text(trip.title)
+                                        Text(trip.name)
                                             .font(.headline)
                                             .foregroundColor(.themeDarkText)
                                         Text("\(trip.startDate.formatted(date: .abbreviated, time: .omitted)) - \(trip.endDate.formatted(date: .abbreviated, time: .omitted))")
@@ -59,7 +59,7 @@ struct ItineraryMainView: View {
                 Button(action: { isShowingAddItinerary.toggle() }) {
                     Image(systemName: "plus.circle.fill")
                         .font(.title2)
-                        .foregroundColor(.themeGold) // Menggunakan Gold agar mencolok
+                        .foregroundColor(.themeGold) 
                 }
             }
             .sheet(isPresented: $isShowingAddItinerary) {
@@ -75,14 +75,4 @@ struct ItineraryMainView: View {
         }
         try? modelContext.save()
     }
-}
-
-#Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Trip.self, Destination.self, configurations: config)
-    let dummyTrip = Trip(title: "Eksplorasi Surabaya", startDate: Date(), endDate: Date().addingTimeInterval(86400 * 2))
-    container.mainContext.insert(dummyTrip)
-    
-    return ItineraryMainView()
-        .modelContainer(container)
 }

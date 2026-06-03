@@ -5,8 +5,8 @@
 //  Created by student on 03/06/26.
 //
 
-import SwiftUI
 import XCTest
+import Foundation
 import SwiftData
 @testable import ALP_MAD
 
@@ -19,7 +19,7 @@ final class ItineraryCanvasXCTest: XCTestCase {
     
     override func setUpWithError() throws {
         container = try ModelContainer(
-            for: Trip.self, Destination.self,
+            for: Trip.self, Destination.self, BudgetItem.self, 
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
     }
@@ -40,6 +40,7 @@ final class ItineraryCanvasXCTest: XCTestCase {
         XCTAssertEqual(trip.startDate, startDate)
         XCTAssertEqual(trip.endDate, endDate)
         XCTAssertTrue(trip.destinations.isEmpty)
+        XCTAssertTrue(trip.budgetItems.isEmpty) // Optionally verify budgetItems
     }
     
     func testTripTotalDaysCalculation() throws {

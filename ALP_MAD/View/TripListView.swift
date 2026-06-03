@@ -5,9 +5,6 @@
 //  Created by Dharma on 28/05/26.
 //
 
-// TripListView.swift
-// Home screen — list of trips
-
 import SwiftUI
 import SwiftData
 import WatchConnectivity
@@ -29,7 +26,7 @@ struct TripListView: View {
                                 #if os(watchOS)
                                 WatchBudgetDetailView(trip: trip)
                                 #else
-                                BudgetDetailView(trip: trip)
+                                TripDetailTabView(trip: trip)
                                 #endif
                             } label: {
                                 TripListRow(trip: trip)

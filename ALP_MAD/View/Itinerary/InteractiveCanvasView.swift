@@ -155,8 +155,10 @@ struct InteractiveCanvasView: View {
 
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Trip.self, Destination.self, configurations: config)
-    let dummyTrip = Trip(title: "Explore Surabaya", startDate: Date(), endDate: Date().addingTimeInterval(86400 * 2))
+
+    let container = try! ModelContainer(for: Trip.self, Destination.self, BudgetItem.self, configurations: config)
+    
+    let dummyTrip = Trip(name: "Explore Surabaya", destination: "Surabaya", startDate: Date(), endDate: Date().addingTimeInterval(86400 * 2))
     
     let dummyDest = Destination(
         name: "Tugu Pahlawan",
@@ -168,9 +170,12 @@ struct InteractiveCanvasView: View {
         timeString: "09:00",
         activityDesc: "Monumen bersejarah perjuangan pahlawan."
     )
-    dummyTrip.destinations.append(dummyDest)
-    container.mainContext.insert(dummyTrip)
     
+  
+    let _ = dummyTrip.destinations.append(dummyDest)
+    let _ = container.mainContext.insert(dummyTrip)
+    
+ 
     return NavigationStack {
         InteractiveCanvasView(trip: dummyTrip, dayNumber: 1, context: container.mainContext)
     }

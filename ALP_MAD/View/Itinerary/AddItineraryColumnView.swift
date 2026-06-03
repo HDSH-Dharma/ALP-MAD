@@ -12,7 +12,9 @@ struct AddItineraryColumnView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    @State private var tripTitle = ""
+    // Updated and added states to match the Trip model properties
+    @State private var tripName = ""
+    @State private var destination = ""
     @State private var startDate = Date()
     @State private var endDate = Date().addingTimeInterval(86400 * 2)
     
@@ -20,7 +22,10 @@ struct AddItineraryColumnView: View {
         NavigationStack {
             Form {
                 Section("Tujuan Perjalanan") {
-                    TextField("Nama Liburan (contoh: Explore Bali)", text: $tripTitle)
+                    TextField("Nama Liburan (contoh: Explore Bali)", text: $tripName)
+                    
+                    // Added destination field required by the Trip model
+                    TextField("Lokasi Tujuan (contoh: Bali)", text: $destination)
                 }
                 
                 Section("Jadwal") {
@@ -39,13 +44,20 @@ struct AddItineraryColumnView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Lanjut") {
-                        let newTrip = Trip(title: tripTitle, startDate: startDate, endDate: endDate)
+                        // ADJUSTED: Uses 'name' and passes the 'destination' string
+                        let newTrip = Trip(
+                            name: tripName,
+                            destination: destination,
+                            startDate: startDate,
+                            endDate: endDate
+                        )
                         modelContext.insert(newTrip)
                         try? modelContext.save()
                         dismiss()
                     }
-                    .disabled(tripTitle.isEmpty)
-                    .foregroundColor(tripTitle.isEmpty ? .gray : .themeTeal)
+                    // Validation adjusted to check both inputs
+                    .disabled(tripName.isEmpty || destination.isEmpty)
+                    .foregroundColor((tripName.isEmpty || destination.isEmpty) ? .gray : .themeTeal)
                     .fontWeight(.bold)
                 }
             }
@@ -55,6 +67,7 @@ struct AddItineraryColumnView: View {
 
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Trip.self, Destination.self, configurations: config)
-    return AddItineraryColumnView().modelContainer(container)
+    let container = try! ModelContainer(for: Trip.self, Destination.self, BudgetItem.self, configurations: config)
+    return AddItineraryColumnView()
+        .modelContainer(container)
 }

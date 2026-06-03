@@ -5,8 +5,8 @@
 //  Created by student on 03/06/26.
 //
 
-import SwiftUI
 import Testing
+import Foundation
 import SwiftData
 @testable import ALP_MAD
 
@@ -19,7 +19,7 @@ struct ItineraryCanvasSwiftTesting {
     func testTripInitialization() throws {
         let startDate = Date()
         let endDate = Calendar.current.date(byAdding: .day, value: 3, to: startDate)!
-        // Updated to use 'name' and provide a 'destination'
+        
         let trip = Trip(name: "Bali Trip", destination: "Bali", startDate: startDate, endDate: endDate)
         
         #expect(trip.name == "Bali Trip")
@@ -27,6 +27,7 @@ struct ItineraryCanvasSwiftTesting {
         #expect(trip.startDate == startDate)
         #expect(trip.endDate == endDate)
         #expect(trip.destinations.isEmpty)
+        #expect(trip.budgetItems.isEmpty) 
     }
     
     @Test("Trip totalDays calculation for multi-day trip")
@@ -65,7 +66,7 @@ struct ItineraryCanvasSwiftTesting {
     @MainActor
     func testSaveAndFetchTrip() async throws {
         let container = try ModelContainer(
-            for: Trip.self, Destination.self,
+            for: Trip.self, Destination.self, BudgetItem.self, // Added BudgetItem.self
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
         let context = container.mainContext
@@ -88,7 +89,7 @@ struct ItineraryCanvasSwiftTesting {
     @MainActor
     func testUpdateTripProperties() async throws {
         let container = try ModelContainer(
-            for: Trip.self, Destination.self,
+            for: Trip.self, Destination.self, BudgetItem.self, // Added BudgetItem.self
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
         let context = container.mainContext
@@ -110,7 +111,7 @@ struct ItineraryCanvasSwiftTesting {
     @MainActor
     func testMultipleTrips() async throws {
         let container = try ModelContainer(
-            for: Trip.self, Destination.self,
+            for: Trip.self, Destination.self, BudgetItem.self, // Added BudgetItem.self
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
         let context = container.mainContext
@@ -137,7 +138,7 @@ struct ItineraryCanvasSwiftTesting {
     @MainActor
     func testDeleteTrip() async throws {
         let container = try ModelContainer(
-            for: Trip.self, Destination.self,
+            for: Trip.self, Destination.self, BudgetItem.self, // Added BudgetItem.self
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
         let context = container.mainContext
@@ -159,7 +160,7 @@ struct ItineraryCanvasSwiftTesting {
     @MainActor
     func testFetchTripWithSort() async throws {
         let container = try ModelContainer(
-            for: Trip.self, Destination.self,
+            for: Trip.self, Destination.self, BudgetItem.self, // Added BudgetItem.self
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
         let context = container.mainContext
@@ -186,7 +187,7 @@ struct ItineraryCanvasSwiftTesting {
     @MainActor
     func testTripEmptyDestinations() async throws {
         let container = try ModelContainer(
-            for: Trip.self, Destination.self,
+            for: Trip.self, Destination.self, BudgetItem.self, // Added BudgetItem.self
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
         let context = container.mainContext
