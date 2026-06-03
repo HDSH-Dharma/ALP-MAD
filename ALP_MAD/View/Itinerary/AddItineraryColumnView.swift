@@ -25,9 +25,9 @@ struct AddItineraryColumnView: View {
                 
                 Section("Jadwal") {
                     DatePicker("Mulai", selection: $startDate, displayedComponents: .date)
-                        .tint(.roseGold)
+                        .tint(.themeTeal)
                     DatePicker("Selesai", selection: $endDate, in: startDate..., displayedComponents: .date)
-                        .tint(.roseGold)
+                        .tint(.themeTeal)
                 }
             }
             .navigationTitle("Buat Itinerary Baru")
@@ -35,7 +35,7 @@ struct AddItineraryColumnView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Batal") { dismiss() }
-                        .foregroundColor(.roseGoldDark)
+                        .foregroundColor(.themeDarkText)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Lanjut") {
@@ -45,7 +45,7 @@ struct AddItineraryColumnView: View {
                         dismiss()
                     }
                     .disabled(tripTitle.isEmpty)
-                    .foregroundColor(tripTitle.isEmpty ? .gray : .roseGoldDark)
+                    .foregroundColor(tripTitle.isEmpty ? .gray : .themeTeal)
                     .fontWeight(.bold)
                 }
             }
@@ -53,11 +53,8 @@ struct AddItineraryColumnView: View {
     }
 }
 
-// MARK: - PREVIEW
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Trip.self, Destination.self, configurations: config)
-    
-    return AddItineraryColumnView()
-        .modelContainer(container)
+    return AddItineraryColumnView().modelContainer(container)
 }

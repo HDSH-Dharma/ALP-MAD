@@ -37,9 +37,10 @@ struct InteractiveCanvasView: View {
                 Map(position: $cameraPos) {
                     ForEach(discoverablePlaces) { place in
                         Annotation(place.name, coordinate: CLLocationCoordinate2D(latitude: place.latitude, longitude: place.longitude)) {
+                            // Menggunakan Teal untuk UMKM, Blue untuk Wisata Umum
                             Image(systemName: place.isUMKM ? "storefront.circle.fill" : "mappin.circle.fill")
                                 .font(.title)
-                                .foregroundColor(place.isUMKM ? .green : .roseGold)
+                                .foregroundColor(place.isUMKM ? .themeTeal : .themeBlue)
                                 .background(Circle().fill(Color.white).shadow(radius: 2))
                                 .scaleEffect(selectedPlace == place ? 1.3 : 1.0)
                                 .onTapGesture {
@@ -55,16 +56,16 @@ struct InteractiveCanvasView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack(alignment: .top) {
                             RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.roseGoldLight)
+                                .fill(Color.themeTurquoiseLight)
                                 .frame(width: 60, height: 60)
-                                .overlay(Image(systemName: "photo").foregroundColor(.roseGoldDark))
+                                .overlay(Image(systemName: "photo").foregroundColor(.themeTeal))
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(place.name).font(.headline).foregroundColor(.primary)
+                                Text(place.name).font(.headline).foregroundColor(.themeDarkText)
                                 if place.isUMKM {
                                     Text("SDG 8: UMKM Lokal").font(.caption2).bold()
                                         .padding(.horizontal, 6).padding(.vertical, 2)
-                                        .background(Color.green.opacity(0.15)).foregroundColor(.green).cornerRadius(4)
+                                        .background(Color.themeGold.opacity(0.2)).foregroundColor(.themeGold).cornerRadius(4)
                                 }
                                 Text(place.shortDesc).font(.caption).foregroundColor(.secondary).lineLimit(2)
                             }
@@ -79,7 +80,7 @@ struct InteractiveCanvasView: View {
                                 .font(.subheadline).bold()
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
-                                .background(Color.roseGold)
+                                .background(Color.themeTeal)
                                 .foregroundColor(.white)
                                 .cornerRadius(8)
                         }
@@ -96,10 +97,10 @@ struct InteractiveCanvasView: View {
             // BAGIAN 2: LIST DRAG & DROP
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Text("Jadwal Aktivitas").font(.headline).foregroundColor(.roseGoldDark)
+                    Text("Jadwal Aktivitas").font(.headline).foregroundColor(.themeDarkText)
                     Spacer()
                     EditButton()
-                        .foregroundColor(.roseGold)
+                        .foregroundColor(.themeGold)
                 }
                 .padding()
                 .background(Color(.systemGray6))
@@ -118,10 +119,10 @@ struct InteractiveCanvasView: View {
                             HStack(spacing: 12) {
                                 Text(dest.timeString)
                                     .font(.subheadline).bold()
-                                    .foregroundColor(.roseGoldDark)
+                                    .foregroundColor(.themeTeal)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(dest.name).font(.body).fontWeight(.semibold)
+                                    Text(dest.name).font(.body).fontWeight(.semibold).foregroundColor(.themeDarkText)
                                     if !dest.activityDesc.isEmpty {
                                         Text(dest.activityDesc).font(.caption).foregroundColor(.secondary).lineLimit(1)
                                     }
@@ -146,20 +147,17 @@ struct InteractiveCanvasView: View {
                     dismiss()
                 }
                 .fontWeight(.bold)
-                .foregroundColor(.roseGoldDark)
+                .foregroundColor(.themeBlue)
             }
         }
     }
 }
 
-// MARK: - PREVIEW
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Trip.self, Destination.self, configurations: config)
-    
     let dummyTrip = Trip(title: "Explore Surabaya", startDate: Date(), endDate: Date().addingTimeInterval(86400 * 2))
     
-    // Menambahkan satu destinasi awal agar list tidak kosong di preview
     let dummyDest = Destination(
         name: "Tugu Pahlawan",
         latitude: -7.2458,

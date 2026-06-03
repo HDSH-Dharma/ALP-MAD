@@ -20,6 +20,7 @@ struct TripDaysDetailView: View {
                     Text(trip.title)
                         .font(.title2)
                         .bold()
+                        .foregroundColor(.themeBlue)
                     Text("\(trip.startDate.formatted(date: .abbreviated, time: .omitted)) - \(trip.endDate.formatted(date: .abbreviated, time: .omitted))")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
@@ -27,16 +28,17 @@ struct TripDaysDetailView: View {
                 .padding(.vertical, 8)
             }
             
-            Section(header: Text("Pilih Hari Untuk Dijadwalkan").foregroundColor(.roseGoldDark)) {
+            Section(header: Text("Pilih Hari Untuk Dijadwalkan").foregroundColor(.themeTeal)) {
                 ForEach(1...trip.totalDays, id: \.self) { day in
                     NavigationLink(destination: InteractiveCanvasView(trip: trip, dayNumber: day, context: modelContext)) {
                         HStack {
                             ZStack {
-                                Circle().fill(Color.roseGoldLight).frame(width: 36, height: 36)
-                                Text("\(day)").font(.headline).foregroundColor(.roseGoldDark)
+                                Circle().fill(Color.themeTurquoiseLight).frame(width: 36, height: 36)
+                                Text("\(day)").font(.headline).foregroundColor(.themeTeal)
                             }
                             Text("Hari Ke-\(day)")
                                 .fontWeight(.medium)
+                                .foregroundColor(.themeDarkText)
                                 .padding(.leading, 8)
                             Spacer()
                             
@@ -45,8 +47,8 @@ struct TripDaysDetailView: View {
                                 Text("\(count) Tempat")
                                     .font(.caption)
                                     .padding(6)
-                                    .background(Color.roseGoldLight.opacity(0.5))
-                                    .foregroundColor(.roseGoldDark)
+                                    .background(Color.themeGold.opacity(0.3))
+                                    .foregroundColor(.themeDarkText)
                                     .clipShape(Capsule())
                             } else {
                                 Text("Kosong")
@@ -65,17 +67,12 @@ struct TripDaysDetailView: View {
     }
 }
 
-// MARK: - PREVIEW
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Trip.self, Destination.self, configurations: config)
-    
     let dummyTrip = Trip(title: "Explore Bali", startDate: Date(), endDate: Date().addingTimeInterval(86400 * 3))
-    
-    // Tambah 1 destinasi dummy agar badge "1 Tempat" muncul di Hari Ke-1
     let dummyDest = Destination(name: "Pantai Kuta", latitude: -8.7179, longitude: 115.1695, isLocalUMKM: false, visitOrder: 0, dayNumber: 1)
     dummyTrip.destinations.append(dummyDest)
-    
     container.mainContext.insert(dummyTrip)
     
     return NavigationStack {

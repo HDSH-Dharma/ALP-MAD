@@ -11,7 +11,7 @@ import SwiftData
 struct ItineraryMainView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Trip.startDate) private var trips: [Trip]
-    @State private var isShowingAddStage1 = false
+    @State private var isShowingAddItinerary = false
     
     var body: some View {
         NavigationStack {
@@ -31,17 +31,17 @@ struct ItineraryMainView: View {
                                 HStack(spacing: 16) {
                                     ZStack {
                                         RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color.roseGoldLight)
+                                            .fill(Color.themeTurquoiseLight)
                                             .frame(width: 50, height: 50)
                                         Image(systemName: "airplane.departure")
-                                            .foregroundColor(.roseGoldDark)
+                                            .foregroundColor(.themeTeal)
                                             .font(.title3)
                                     }
                                     
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(trip.title)
                                             .font(.headline)
-                                            .foregroundColor(.primary)
+                                            .foregroundColor(.themeDarkText)
                                         Text("\(trip.startDate.formatted(date: .abbreviated, time: .omitted)) - \(trip.endDate.formatted(date: .abbreviated, time: .omitted))")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
@@ -56,17 +56,17 @@ struct ItineraryMainView: View {
             }
             .navigationTitle("Itinerary")
             .toolbar {
-                Button(action: { isShowingAddStage1.toggle() }) {
+                Button(action: { isShowingAddItinerary.toggle() }) {
                     Image(systemName: "plus.circle.fill")
                         .font(.title2)
-                        .foregroundColor(.roseGold)
+                        .foregroundColor(.themeGold) // Menggunakan Gold agar mencolok
                 }
             }
-            .sheet(isPresented: $isShowingAddStage1) {
+            .sheet(isPresented: $isShowingAddItinerary) {
                 AddItineraryColumnView()
             }
         }
-        .tint(.roseGoldDark)
+        .tint(.themeTeal)
     }
     
     private func deleteTrip(at offsets: IndexSet) {
@@ -77,12 +77,9 @@ struct ItineraryMainView: View {
     }
 }
 
-// MARK: - PREVIEW
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Trip.self, Destination.self, configurations: config)
-    
-    // Data Dummy untuk Preview
     let dummyTrip = Trip(title: "Eksplorasi Surabaya", startDate: Date(), endDate: Date().addingTimeInterval(86400 * 2))
     container.mainContext.insert(dummyTrip)
     
