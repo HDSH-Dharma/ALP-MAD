@@ -9,7 +9,7 @@ import SwiftUI
 import Charts
 
 struct BudgetDonutChart: View {
-    let breakdown: [(category: BudgetCategory, total: Double, percentage: Double)]
+    let breakdown: [CategoryBreakdownItem]
     let totalBudget: Double
     let currency: String
     let vm: BudgetViewModel

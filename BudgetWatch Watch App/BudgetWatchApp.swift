@@ -1,17 +1,17 @@
 //
-//  ALP_MADApp.swift
-//  ALP_MAD
+//  BudgetWatchApp.swift
+//  BudgetWatch Watch App
 //
-//  Created by Dharma on 28/05/26.
+//  Created by Dharma on 03/06/26.
 //
 
 import SwiftUI
 import SwiftData
 
 @main
-struct ALP_MADApp: App {
+struct BudgetWatch_Watch_AppApp: App {
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([Trip.self, BudgetItem.self, Destination.self])
+        let schema = Schema([Trip.self, BudgetItem.self])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {
             return try ModelContainer(for: schema, configurations: [config])
@@ -19,12 +19,12 @@ struct ALP_MADApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
-     
+
     @State private var vm = BudgetViewModel()
-     
+
     var body: some Scene {
         WindowGroup {
-            TripListView()
+            WatchTripListView()
                 .environment(vm)
         }
         .modelContainer(sharedModelContainer)

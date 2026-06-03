@@ -32,7 +32,9 @@ struct BudgetItemFormView: View {
                             .foregroundStyle(.secondary)
                             .font(.subheadline)
                         TextField("0", text: $vm.itemAmount)
+                        #if os(iOS)
                             .keyboardType(.numberPad)
+                        #endif
                     }
                 }
  

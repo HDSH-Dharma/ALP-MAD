@@ -7,56 +7,65 @@
 
 import SwiftUI
 import SwiftData
+import WatchConnectivity
 
 struct TripListView: View {
     @Environment(\.modelContext) private var context
+    @Environment(BudgetViewModel.self)  private var vm   // shared from app entry point
     @Query(sort: \Trip.startDate, order: .reverse) private var trips: [Trip]
- 
-    @State private var vm = BudgetViewModel()
- 
+
     var body: some View {
-        NavigationStack {
-            Group {
-                if trips.isEmpty {
-                    emptyState
-                } else {
-                    List {
-                        ForEach(trips) { trip in
-                            NavigationLink {
-                                BudgetDetailView(trip: trip, vm: vm)
-                            } label: {
-                                TripListRow(trip: trip, vm: vm)
-                            }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button(role: .destructive) {
-                                    vm.deleteTrip(trip, context: context)
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
+            NavigationStack {
+                Group {
+                    if trips.isEmpty {
+                        emptyState
+                    } else {
+                        List {
+                            ForEach(trips) { trip in
+                                NavigationLink(value: trip) {
+                                    TripListRow(trip: trip)
                                 }
                             }
                         }
-                    }
-                    .listStyle(.insetGrouped)
-                }
-            }
-            .navigationTitle("My Trips")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        vm.showAddTrip = true
-                    } label: {
-                        Label("New Trip", systemImage: "plus")
+                        #if os(watchOS)
+                        .listStyle(.plain)
+                        #else
+                        .listStyle(.insetGrouped)
+                        #endif
                     }
                 }
-            }
-            .sheet(isPresented: $vm.showAddTrip) {
-                AddTripView(vm: vm)
-                    .presentationDetents([.medium, .large])
+                .navigationTitle("My Trips")
+                .navigationDestination(for: Trip.self) { trip in
+                    #if os(watchOS)
+                    WatchBudgetDetailView(trip: trip)
+                    #else
+                    TripDetailTabView(trip: trip)
+                    #endif
+                }
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            vm.showAddTrip = true
+                        } label: {
+                            Label("New Trip", systemImage: "plus")
+                        }
+                    }
+                }
+                .sheet(isPresented: Bindable(vm).showAddTrip) {
+                    AddTripView()
+                    #if !os(watchOS)
+                       .presentationDetents([.medium, .large])
+                    #endif
+                }
+                .onAppear {
+                    WatchConnectivityManager.shared.sendTrips(trips)
+                }
+                .onChange(of: trips) { _, newTrips in
+                    WatchConnectivityManager.shared.sendTrips(newTrips)
+                }
             }
         }
-    }
- 
-    // MARK: Empty State
+
     private var emptyState: some View {
         VStack(spacing: 20) {
             Image(systemName: "airplane.departure")

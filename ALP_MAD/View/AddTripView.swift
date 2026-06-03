@@ -7,37 +7,42 @@
 
 
 import SwiftUI
-
+import SwiftData
+ 
 struct AddTripView: View {
-    @Environment(\.modelContext) private var context
-    @Environment(\.dismiss)      private var dismiss
-
-    @Bindable var vm: BudgetViewModel
-
+    @Environment(\.modelContext)       private var context
+    @Environment(\.dismiss)            private var dismiss
+    @Environment(BudgetViewModel.self) private var vm
+ 
     let currencies = ["IDR", "USD", "EUR", "SGD", "JPY", "AUD", "MYR"]
-
+ 
     var body: some View {
         NavigationStack {
             Form {
                 Section("Trip Info") {
-                    TextField("Trip Name (e.g. Bali Summer 2026)", text: $vm.tripName)
+                    TextField("Trip Name (e.g. Bali Summer 2026)", text: Bindable(vm).tripName)
                         .textInputAutocapitalization(.words)
-                    TextField("Destination", text: $vm.tripDestination)
+                    TextField("Destination", text: Bindable(vm).tripDestination)
                         .textInputAutocapitalization(.words)
                 }
-
+ 
                 Section("Dates") {
-                    DatePicker("Departure", selection: $vm.tripStartDate, displayedComponents: .date)
-                    DatePicker("Return",    selection: $vm.tripEndDate,   in: vm.tripStartDate..., displayedComponents: .date)
+                    DatePicker("Departure", selection: Bindable(vm).tripStartDate, displayedComponents: .date)
+                    DatePicker("Return",    selection: Bindable(vm).tripEndDate,
+                               in: vm.tripStartDate..., displayedComponents: .date)
                 }
-
+ 
                 Section("Currency") {
-                    Picker("Currency", selection: $vm.tripCurrency) {
+                    Picker("Currency", selection: Bindable(vm).tripCurrency) {
                         ForEach(currencies, id: \.self) { c in
                             Text(c).tag(c)
                         }
                     }
-                    .pickerStyle(.segmented)
+                    #if os(watchOS)
+                        .pickerStyle(.wheel)
+                    #else
+                        .pickerStyle(.segmented)
+                    #endif
                 }
             }
             .navigationTitle("New Trip")
