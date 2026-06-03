@@ -14,15 +14,21 @@ final class Destination {
     var name: String = ""
     var latitude: Double = 0.0
     var longitude: Double = 0.0
-    var isLocalUMKM: Bool = false // Fokus utama SDG Target 8.9
-    var visitOrder: Int = 0 // Menyimpan urutan kunjungan di Itinerary
-
-    init(name: String, latitude: Double, longitude: Double, isLocalUMKM: Bool = false, visitOrder: Int = 0) {
+    var isLocalUMKM: Bool = false
+    var visitOrder: Int = 0
+    var dayNumber: Int = 1
+    var timeString: String = ""
+    var activityDesc: String = ""
+    
+    init(name: String, latitude: Double, longitude: Double, isLocalUMKM: Bool = false, visitOrder: Int = 0, dayNumber: Int = 1, timeString: String = "09:00", activityDesc: String = "") {
         self.id = UUID()
         self.name = name
         self.latitude = latitude
         self.longitude = longitude
         self.isLocalUMKM = isLocalUMKM
         self.visitOrder = visitOrder
+        self.dayNumber = dayNumber
+        self.timeString = timeString
+        self.activityDesc = activityDesc
     }
 }

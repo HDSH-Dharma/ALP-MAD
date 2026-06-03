@@ -15,13 +15,21 @@ final class Trip {
     var startDate: Date = Date()
     var endDate: Date = Date()
     
-    // Relasi Cascade: Menghapus trip otomatis menghapus seluruh tujuannya
     @Relationship(deleteRule: .cascade) var destinations: [Destination] = []
-
+    
     init(title: String, startDate: Date, endDate: Date) {
         self.id = UUID()
         self.title = title
         self.startDate = startDate
         self.endDate = endDate
+    }
+    
+    // Menghitung durasi hari liburan otomatis
+    var totalDays: Int {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: startDate)
+        let end = calendar.startOfDay(for: endDate)
+        let components = calendar.dateComponents([.day], from: start, to: end)
+        return max(1, (components.day ?? 0) + 1)
     }
 }
