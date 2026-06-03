@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import SwiftData
  
 struct AddTripView: View {
     @Environment(\.modelContext)       private var context
@@ -37,7 +38,11 @@ struct AddTripView: View {
                             Text(c).tag(c)
                         }
                     }
-                    .pickerStyle(.segmented)
+                    #if os(watchOS)
+                        .pickerStyle(.wheel)
+                    #else
+                        .pickerStyle(.segmented)
+                    #endif
                 }
             }
             .navigationTitle("New Trip")

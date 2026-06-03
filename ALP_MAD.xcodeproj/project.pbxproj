@@ -83,6 +83,7 @@
 		ABE1C2862FD0144200EB6A9A /* Exceptions for "ALP_MAD" folder in "BudgetWatch Watch App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				ALP_MADApp.swift,
 				Budget_IOS/BudgetCalculationTests.swift,
 				Budget_IOS/FormattingTests.swift,
 				Budget_IOS/FormStateTests.swift,
@@ -90,27 +91,44 @@
 				Budget_IOS/ItemFormValidationTests.swift,
 				Budget_IOS/TripCRUDTests.swift,
 				View/AddTripView.swift,
+				View/BudgetDetailView.swift,
+				View/BudgetItemFormView.swift,
 				View/Components/BudgetBarChart.swift,
 				View/Components/BudgetDonutChart.swift,
 				View/Components/BudgetItemRow.swift,
 				View/Components/CategoryLegendRow.swift,
+				View/Components/EmptyBudgetView.swift,
+				View/Components/TripHeaderCard.swift,
+				View/Components/TripListRow.swift,
+				View/TripListView.swift,
 			);
 			target = ABE1C1B22FD0090900EB6A9A /* BudgetWatch Watch App */;
 		};
 		ABE1C2872FD0144400EB6A9A /* Exceptions for "ALP_MAD" folder in "BudgetWatch Watch AppTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				ALP_MADApp.swift,
 				Budget_IOS/BudgetCalculationTests.swift,
 				Budget_IOS/FormattingTests.swift,
 				Budget_IOS/FormStateTests.swift,
 				Budget_IOS/ItemCRUDTests.swift,
 				Budget_IOS/ItemFormValidationTests.swift,
 				Budget_IOS/TripCRUDTests.swift,
+				Model/BudgetCategory.swift,
+				Model/BudgetItem.swift,
+				Model/CategoryBreakdownItem.swift,
+				Model/Trip.swift,
 				View/AddTripView.swift,
+				View/BudgetDetailView.swift,
+				View/BudgetItemFormView.swift,
 				View/Components/BudgetBarChart.swift,
 				View/Components/BudgetDonutChart.swift,
 				View/Components/BudgetItemRow.swift,
 				View/Components/CategoryLegendRow.swift,
+				View/Components/EmptyBudgetView.swift,
+				View/Components/TripHeaderCard.swift,
+				View/Components/TripListRow.swift,
+				View/TripListView.swift,
 				ViewModel/BudgetViewModel.swift,
 			);
 			target = ABE1C1BE2FD0090A00EB6A9A /* BudgetWatch Watch AppTests */;
@@ -121,7 +139,6 @@
 				BudgetWatchApp.swift,
 				WatchBudgetDetailView.swift,
 				WatchTripListView.swift,
-				WatchTripPayload.swift,
 				WatchTripRow.swift,
 			);
 			target = AB213C422FC7F17600D12F12 /* ALP_MAD */;
@@ -138,6 +155,40 @@
 			);
 			target = AB213C422FC7F17600D12F12 /* ALP_MAD */;
 		};
+		ABE1C3BA2FD0684C00EB6A9A /* Exceptions for "ALP_MAD" folder in "Budget_IOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ALP_MADApp.swift,
+				Model/BudgetCategory.swift,
+				Model/BudgetItem.swift,
+				Model/CategoryBreakdownItem.swift,
+				Model/Trip.swift,
+				View/AddTripView.swift,
+				View/BudgetDetailView.swift,
+				View/BudgetItemFormView.swift,
+				View/Components/BudgetBarChart.swift,
+				View/Components/BudgetDonutChart.swift,
+				View/Components/BudgetItemRow.swift,
+				View/Components/CategoryLegendRow.swift,
+				View/Components/EmptyBudgetView.swift,
+				View/Components/TripHeaderCard.swift,
+				View/Components/TripListRow.swift,
+				View/TripListView.swift,
+				ViewModel/BudgetViewModel.swift,
+			);
+			target = ABE1C29F2FD0187B00EB6A9A /* Budget_IOS */;
+		};
+		ABE1C4A02FD098EF00EB6A9A /* Exceptions for "BudgetWatch Watch App" folder in "Budget_IOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BudgetWatchApp.swift,
+				WatchBudgetDetailView.swift,
+				WatchTripListView.swift,
+				WatchTripPayload.swift,
+				WatchTripRow.swift,
+			);
+			target = ABE1C29F2FD0187B00EB6A9A /* Budget_IOS */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -147,6 +198,7 @@
 				ABE1C2E22FD019AB00EB6A9A /* Exceptions for "ALP_MAD" folder in "ALP_MAD" target */,
 				ABE1C2862FD0144200EB6A9A /* Exceptions for "ALP_MAD" folder in "BudgetWatch Watch App" target */,
 				ABE1C2872FD0144400EB6A9A /* Exceptions for "ALP_MAD" folder in "BudgetWatch Watch AppTests" target */,
+				ABE1C3BA2FD0684C00EB6A9A /* Exceptions for "ALP_MAD" folder in "Budget_IOS" target */,
 			);
 			path = ALP_MAD;
 			sourceTree = "<group>";
@@ -155,6 +207,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				ABE1C2892FD0145200EB6A9A /* Exceptions for "BudgetWatch Watch App" folder in "ALP_MAD" target */,
+				ABE1C4A02FD098EF00EB6A9A /* Exceptions for "BudgetWatch Watch App" folder in "Budget_IOS" target */,
 			);
 			path = "BudgetWatch Watch App";
 			sourceTree = "<group>";

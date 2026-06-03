@@ -15,17 +15,17 @@ struct WatchTripListView: View {
         NavigationStack {
             List {
                 if wc.receivedTrips.isEmpty {
-                    VStack(spacing: 8) {
+                    VStack(spacing: 12) {
                         Image(systemName: "iphone.and.arrow.forward")
-                            .font(.system(size: 32))
-                            .foregroundStyle(.secondary)
-                        Text("Buka app di iPhone\nlalu tambah trip.")
-                            .font(.caption)
+                            .font(.system(size: 34))
+                            .foregroundStyle(.blue)
+                        Text("Open App in iPhone\nto sync trip.")
+                            .font(.system(size: 12))
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
+                    .padding(.vertical, 20)
                     .listRowBackground(Color.clear)
                 } else {
                     ForEach(wc.receivedTrips, id: \.id) { trip in
@@ -37,7 +37,7 @@ struct WatchTripListView: View {
                     }
                 }
             }
-            .navigationTitle("Trips")
+            .navigationTitle("My Trip")
         }
     }
 }

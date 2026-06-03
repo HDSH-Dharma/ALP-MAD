@@ -10,15 +10,32 @@ import SwiftUI
 struct WatchTripRow: View {
     let trip: WatchTripPayload
  
+    private var calculatedTotal: Double {
+        trip.items.reduce(0) { $0 + $1.amount }
+    }
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(trip.destination)
-                .font(.system(size: 14, weight: .semibold))
-                .lineLimit(1)
-            Text(formatCurrency(trip.items.reduce(0) { $0 + $1.amount }, currency: trip.currency))
-                .font(.system(size: 12))
+        HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(trip.destination)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                
+                Text(trip.name)
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+            }
+            
+            Spacer()
+            
+            Text(formatCurrency(calculatedTotal, currency: trip.currency))
+                .font(.system(size: 13, weight: .bold))
                 .foregroundStyle(.blue)
+                .lineLimit(1)
         }
+        .padding(.vertical, 2)
     }
     
     private func formatCurrency(_ amount: Double, currency: String) -> String {

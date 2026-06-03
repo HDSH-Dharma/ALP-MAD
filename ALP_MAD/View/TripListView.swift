@@ -10,6 +10,7 @@
 
 import SwiftUI
 import SwiftData
+import WatchConnectivity
 
 struct TripListView: View {
     @Environment(\.modelContext) private var context
@@ -25,20 +26,21 @@ struct TripListView: View {
                     List {
                         ForEach(trips) { trip in
                             NavigationLink {
+                                #if os(watchOS)
+                                WatchBudgetDetailView(trip: trip)
+                                #else
                                 BudgetDetailView(trip: trip)
+                                #endif
                             } label: {
                                 TripListRow(trip: trip)
                             }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button(role: .destructive) {
-                                    vm.deleteTrip(trip, context: context)
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
                         }
                     }
+                    #if os(watchOS)
+                    .listStyle(.plain)
+                    #else
                     .listStyle(.insetGrouped)
+                    #endif
                 }
             }
             .navigationTitle("My Trips")
@@ -53,7 +55,15 @@ struct TripListView: View {
             }
             .sheet(isPresented: Bindable(vm).showAddTrip) {
                 AddTripView()
-                    .presentationDetents([.medium, .large])
+                #if !os(watchOS)
+                   .presentationDetents([.medium, .large])
+                #endif
+            }
+            .onAppear {
+                WatchConnectivityManager.shared.sendTrips(trips)
+            }
+            .onChange(of: trips) { _, newTrips in
+                WatchConnectivityManager.shared.sendTrips(newTrips)
             }
         }
     }

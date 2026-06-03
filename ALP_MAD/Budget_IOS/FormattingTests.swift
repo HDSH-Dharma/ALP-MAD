@@ -20,7 +20,8 @@ import SwiftData
             let vm     = BudgetViewModel()
             let result = vm.formatCurrency(1_500_000, currency: "IDR")
             #expect(result.contains("1.500.000") || result.contains("1,500,000"))
-            #expect(!result.contains(".00"))
+            #expect(!result.hasSuffix(".00"))
+            #expect(!result.hasSuffix(",00"))
         }
 
         @Test("USD formatted with decimals")

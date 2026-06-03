@@ -12,7 +12,7 @@ import Charts
 
 struct BudgetDetailView: View {
     @Environment(\.modelContext)       private var context
-    @Environment(BudgetViewModel.self) private var vm    // shared from app entry point
+    @Environment(BudgetViewModel.self) private var vm    
 
     let trip: Trip
 
@@ -32,18 +32,82 @@ struct BudgetDetailView: View {
         return sorted
     }
 
-    // Computed in the view that observes `trip` directly, so SwiftUI
-    // re-evaluates this whenever budgetItems changes.
-    private var breakdown: [(category: BudgetCategory, total: Double, percentage: Double)] {
+    private var breakdown: [CategoryBreakdownItem] {
         vm.categoryBreakdown(for: trip)
+            .sorted { $0.total > $1.total }
+            .map { CategoryBreakdownItem(category: $0.category, total: $0.total, percentage: $0.percentage) }
+    }
+    
+    private var legendView: some View {
+        VStack(spacing: 0) {
+            ForEach(breakdown, id: \.category) { item in
+                legendRow(for: item)
+            }
+        }
+    }
+    
+    private func legendRow(for item: CategoryBreakdownItem) -> some View {
+        let isSelected = filterCategory == item.category
+        let color = item.category.swiftUIColor
+
+        return CategoryLegendRow(item: item, currency: trip.currency, vm: vm)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                withAnimation(.spring(response: 0.3)) {
+                    filterCategory = isSelected ? nil : item.category
+                }
+            }
+            .padding(.horizontal, 4)
+            .background(
+                isSelected ? color.opacity(0.1) : Color.clear,
+                in: RoundedRectangle(cornerRadius: 8)
+            )
+    }
+    private var itemsHeaderView: some View {
+        HStack {
+            Text(filterCategory == nil ? "All Items" : filterCategory!.rawValue)
+                .font(.headline)
+            if filterCategory != nil {
+                Button {
+                    withAnimation { filterCategory = nil }
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+            Spacer()
+            if filteredItems.count == 1 {
+                Text("1 item")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                Text("\(filteredItems.count) items")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+    
+    private var addItemSheet: some View {
+        BudgetItemFormView(vm: vm, trip: trip, editingItem: nil)
+            .presentationDetents([.large])
     }
 
+    private var editItemSheet: some View {
+        Group {
+            if let item = vm.editingItem {
+                BudgetItemFormView(vm: vm, trip: trip, editingItem: item)
+                    .presentationDetents([.large])
+            }
+        }
+    }
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-
                 // MARK: Header card
-                TripHeaderCard(trip: trip)
+                TripHeaderCard(trip: trip, vm: vm)
                     .padding(.horizontal)
 
                 // MARK: Chart section
@@ -58,42 +122,31 @@ struct BudgetDetailView: View {
                                     Text($0.rawValue).tag($0)
                                 }
                             }
+                            #if os(watchOS)
+                            .pickerStyle(.wheel)
+                            #else
                             .pickerStyle(.segmented)
+                            #endif
                             .frame(width: 140)
                         }
-
+                        
                         if chartMode == .donut {
                             BudgetDonutChart(
                                 breakdown:   breakdown,
                                 totalBudget: vm.totalBudget(for: trip),
-                                currency:    trip.currency
+                                currency:    trip.currency,
+                                vm:          vm
                             )
                         } else {
                             BudgetBarChart(
                                 breakdown: breakdown,
-                                currency:  trip.currency
+                                currency:  trip.currency,
+                                vm:        vm
                             )
                         }
-
+                        
                         // Legend
-                        VStack(spacing: 0) {
-                            ForEach(breakdown, id: \.category) { item in
-                                CategoryLegendRow(item: item, currency: trip.currency)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        withAnimation(.spring(response: 0.3)) {
-                                            filterCategory = (filterCategory == item.category) ? nil : item.category
-                                        }
-                                    }
-                                    .padding(.horizontal, 4)
-                                    .background(
-                                        filterCategory == item.category
-                                            ? item.category.swiftUIColor.opacity(0.1)
-                                            : Color.clear,
-                                        in: RoundedRectangle(cornerRadius: 8)
-                                    )
-                            }
-                        }
+                        legendView
                     }
                     .padding()
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
@@ -102,23 +155,7 @@ struct BudgetDetailView: View {
 
                 // MARK: Items list
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text(filterCategory == nil ? "All Items" : filterCategory!.rawValue)
-                            .font(.headline)
-                        if filterCategory != nil {
-                            Button {
-                                withAnimation { filterCategory = nil }
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.secondary)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        Spacer()
-                        Text("\(filteredItems.count) item\(filteredItems.count == 1 ? "" : "s")")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    itemsHeaderView
 
                     if filteredItems.isEmpty {
                         EmptyBudgetView {
@@ -126,15 +163,9 @@ struct BudgetDetailView: View {
                         }
                     } else {
                         ForEach(filteredItems) { item in
-                            BudgetItemRow(item: item, currency: trip.currency)
-                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                    Button(role: .destructive) {
-                                        vm.deleteItem(item, from: trip, context: context)
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
-                                }
-                                .swipeActions(edge: .leading) {
+                            BudgetItemRow(item: item, currency: trip.currency, vm: vm)
+                                .contentShape(Rectangle())
+                                .contextMenu {
                                     Button {
                                         vm.populateItemForm(from: item)
                                         vm.editingItem  = item
@@ -142,11 +173,16 @@ struct BudgetDetailView: View {
                                     } label: {
                                         Label("Edit", systemImage: "pencil")
                                     }
-                                    .tint(.blue)
+                                    
+                                    Button(role: .destructive) {
+                                        vm.deleteItem(item, from: trip, context: context)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
                                 }
                                 .padding(.vertical, 2)
 
-                            if item.id != filteredItems.last?.id {
+                            if filteredItems.last?.id != item.id {
                                 Divider()
                             }
                         }
@@ -172,14 +208,10 @@ struct BudgetDetailView: View {
             }
         }
         .sheet(isPresented: Bindable(vm).showAddItem) {
-            BudgetItemFormView(trip: trip, editingItem: nil)
-                .presentationDetents([.large])
+            addItemSheet
         }
         .sheet(isPresented: Bindable(vm).showEditItem) {
-            if let item = vm.editingItem {
-                BudgetItemFormView(trip: trip, editingItem: item)
-                    .presentationDetents([.large])
-            }
+            editItemSheet
         }
     }
 }
