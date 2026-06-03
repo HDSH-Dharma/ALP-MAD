@@ -41,16 +41,16 @@ enum BudgetCategory: String, CaseIterable, Codable {
 extension BudgetCategory {
     var swiftUIColor: Color {
         switch self {
-        case .transportation: return Color("categoryBlue",    bundle: nil).fallback(.blue)
-        case .food:           return Color("categoryOrange",  bundle: nil).fallback(.orange)
-        case .activity:       return Color("categoryGreen",   bundle: nil).fallback(.green)
-        case .accommodation:  return Color("categoryPurple",  bundle: nil).fallback(.purple)
-        case .shopping:       return Color("categoryPink",    bundle: nil).fallback(.pink)
-        case .other:          return Color("categoryGray",    bundle: nil).fallback(.gray)
+        case .transportation: return Self.named("categoryBlue",    fallback: .blue)
+        case .food:           return Self.named("categoryOrange",  fallback: .orange)
+        case .activity:       return Self.named("categoryGreen",   fallback: .green)
+        case .accommodation:  return Self.named("categoryPurple",  fallback: .purple)
+        case .shopping:       return Self.named("categoryPink",    fallback: .pink)
+        case .other:          return Self.named("categoryGray",    fallback: .gray)
         }
     }
-}
- 
-extension Color {
-    func fallback(_ fallback: Color) -> Color { self }
+
+    private static func named(_ name: String, fallback: Color) -> Color {
+        UIColor(named: name) != nil ? Color(name) : fallback
+    }
 }
