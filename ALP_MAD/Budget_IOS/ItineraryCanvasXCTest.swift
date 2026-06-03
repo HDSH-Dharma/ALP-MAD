@@ -33,9 +33,10 @@ final class ItineraryCanvasXCTest: XCTestCase {
     func testTripInitialization() throws {
         let startDate = Date()
         let endDate = Calendar.current.date(byAdding: .day, value: 3, to: startDate)!
-        let trip = Trip(title: "Bali Trip", startDate: startDate, endDate: endDate)
+        let trip = Trip(name: "Bali Trip", destination: "Bali", startDate: startDate, endDate: endDate)
         
-        XCTAssertEqual(trip.title, "Bali Trip")
+        XCTAssertEqual(trip.name, "Bali Trip")
+        XCTAssertEqual(trip.destination, "Bali")
         XCTAssertEqual(trip.startDate, startDate)
         XCTAssertEqual(trip.endDate, endDate)
         XCTAssertTrue(trip.destinations.isEmpty)
@@ -46,14 +47,14 @@ final class ItineraryCanvasXCTest: XCTestCase {
         let startDate = calendar.startOfDay(for: Date())
         let endDate = calendar.date(byAdding: .day, value: 2, to: startDate)!
         
-        let trip = Trip(title: "Test Trip", startDate: startDate, endDate: endDate)
+        let trip = Trip(name: "Test Trip", destination: "Test City", startDate: startDate, endDate: endDate)
         
         XCTAssertEqual(trip.totalDays, 3)
     }
     
     func testTripTotalDaysSameDate() throws {
         let sameDay = Date()
-        let trip = Trip(title: "One Day Trip", startDate: sameDay, endDate: sameDay)
+        let trip = Trip(name: "One Day Trip", destination: "Test City", startDate: sameDay, endDate: sameDay)
         
         XCTAssertEqual(trip.totalDays, 1)
     }
@@ -62,7 +63,7 @@ final class ItineraryCanvasXCTest: XCTestCase {
         let startDate = Date()
         let endDate = startDate.addingTimeInterval(86400 * 5)
         
-        let trip = Trip(title: "Five Day Trip", startDate: startDate, endDate: endDate)
+        let trip = Trip(name: "Five Day Trip", destination: "Test City", startDate: startDate, endDate: endDate)
         
         XCTAssertEqual(trip.totalDays, 6)
         XCTAssertTrue(trip.endDate > trip.startDate)
@@ -75,7 +76,7 @@ final class ItineraryCanvasXCTest: XCTestCase {
         
         let startDate = Date()
         let endDate = Calendar.current.date(byAdding: .day, value: 2, to: startDate)!
-        let trip = Trip(title: "Surabaya Trip", startDate: startDate, endDate: endDate)
+        let trip = Trip(name: "Surabaya Trip", destination: "Surabaya", startDate: startDate, endDate: endDate)
         
         context.insert(trip)
         try context.save()
@@ -84,31 +85,31 @@ final class ItineraryCanvasXCTest: XCTestCase {
         let fetchedTrips = try context.fetch(descriptor)
         
         XCTAssertEqual(fetchedTrips.count, 1)
-        XCTAssertEqual(fetchedTrips.first?.title, "Surabaya Trip")
+        XCTAssertEqual(fetchedTrips.first?.name, "Surabaya Trip")
     }
     
     func testUpdateTripProperties() throws {
         let context = container.mainContext
         
-        let trip = Trip(title: "Original Title", startDate: Date(), endDate: Date().addingTimeInterval(86400))
+        let trip = Trip(name: "Original Title", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
         context.insert(trip)
         try context.save()
         
-        trip.title = "Updated Title"
+        trip.name = "Updated Title"
         try context.save()
         
         let descriptor = FetchDescriptor<Trip>()
         let fetchedTrip = try context.fetch(descriptor).first
         
-        XCTAssertEqual(fetchedTrip?.title, "Updated Title")
+        XCTAssertEqual(fetchedTrip?.name, "Updated Title")
     }
     
     func testMultipleTrips() throws {
         let context = container.mainContext
         
-        let trip1 = Trip(title: "Trip 1", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        let trip2 = Trip(title: "Trip 2", startDate: Date(), endDate: Date().addingTimeInterval(86400 * 2))
-        let trip3 = Trip(title: "Trip 3", startDate: Date(), endDate: Date().addingTimeInterval(86400 * 3))
+        let trip1 = Trip(name: "Trip 1", destination: "City A", startDate: Date(), endDate: Date().addingTimeInterval(86400))
+        let trip2 = Trip(name: "Trip 2", destination: "City B", startDate: Date(), endDate: Date().addingTimeInterval(86400 * 2))
+        let trip3 = Trip(name: "Trip 3", destination: "City C", startDate: Date(), endDate: Date().addingTimeInterval(86400 * 3))
         
         context.insert(trip1)
         context.insert(trip2)
@@ -120,14 +121,14 @@ final class ItineraryCanvasXCTest: XCTestCase {
         
         XCTAssertEqual(trips.count, 3)
         
-        let titles = trips.map { $0.title }.sorted()
-        XCTAssertEqual(titles, ["Trip 1", "Trip 2", "Trip 3"])
+        let names = trips.map { $0.name }.sorted()
+        XCTAssertEqual(names, ["Trip 1", "Trip 2", "Trip 3"])
     }
     
     func testDeleteTrip() throws {
         let context = container.mainContext
         
-        let trip = Trip(title: "To Delete", startDate: Date(), endDate: Date().addingTimeInterval(86400))
+        let trip = Trip(name: "To Delete", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
         context.insert(trip)
         try context.save()
         
@@ -143,28 +144,28 @@ final class ItineraryCanvasXCTest: XCTestCase {
     func testFetchTripWithSort() throws {
         let context = container.mainContext
         
-        let tripC = Trip(title: "C Trip", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        let tripA = Trip(title: "A Trip", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        let tripB = Trip(title: "B Trip", startDate: Date(), endDate: Date().addingTimeInterval(86400))
+        let tripC = Trip(name: "C Trip", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
+        let tripA = Trip(name: "A Trip", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
+        let tripB = Trip(name: "B Trip", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
         
         context.insert(tripC)
         context.insert(tripA)
         context.insert(tripB)
         try context.save()
         
-        var descriptor = FetchDescriptor<Trip>(sortBy: [SortDescriptor(\.title)])
+        var descriptor = FetchDescriptor<Trip>(sortBy: [SortDescriptor(\.name)])
         let sortedTrips = try context.fetch(descriptor)
         
         XCTAssertEqual(sortedTrips.count, 3)
-        XCTAssertEqual(sortedTrips[0].title, "A Trip")
-        XCTAssertEqual(sortedTrips[1].title, "B Trip")
-        XCTAssertEqual(sortedTrips[2].title, "C Trip")
+        XCTAssertEqual(sortedTrips[0].name, "A Trip")
+        XCTAssertEqual(sortedTrips[1].name, "B Trip")
+        XCTAssertEqual(sortedTrips[2].name, "C Trip")
     }
     
     func testTripEmptyDestinations() throws {
         let context = container.mainContext
         
-        let trip = Trip(title: "Empty Trip", startDate: Date(), endDate: Date().addingTimeInterval(86400))
+        let trip = Trip(name: "Empty Trip", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
         context.insert(trip)
         try context.save()
         
@@ -175,7 +176,7 @@ final class ItineraryCanvasXCTest: XCTestCase {
         let context = container.mainContext
         
         let originalDate = Date()
-        let trip = Trip(title: "Date Update Trip", startDate: originalDate, endDate: originalDate.addingTimeInterval(86400))
+        let trip = Trip(name: "Date Update Trip", destination: "Test City", startDate: originalDate, endDate: originalDate.addingTimeInterval(86400))
         context.insert(trip)
         try context.save()
         
@@ -192,16 +193,16 @@ final class ItineraryCanvasXCTest: XCTestCase {
     func testFetchTripWithPredicate() throws {
         let context = container.mainContext
         
-        let trip1 = Trip(title: "Bali Trip", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        let trip2 = Trip(title: "Java Trip", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        let trip3 = Trip(title: "Bali Holiday", startDate: Date(), endDate: Date().addingTimeInterval(86400))
+        let trip1 = Trip(name: "Bali Trip", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
+        let trip2 = Trip(name: "Java Trip", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
+        let trip3 = Trip(name: "Bali Holiday", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
         
         context.insert(trip1)
         context.insert(trip2)
         context.insert(trip3)
         try context.save()
         
-        let predicate = #Predicate<Trip> { $0.title.contains("Bali") }
+        let predicate = #Predicate<Trip> { $0.name.contains("Bali") }
         var descriptor = FetchDescriptor<Trip>(predicate: predicate)
         let results = try context.fetch(descriptor)
         
@@ -211,7 +212,7 @@ final class ItineraryCanvasXCTest: XCTestCase {
     func testTripTotalDaysTenDayTrip() throws {
         let startDate = Date()
         let endDate = Calendar.current.date(byAdding: .day, value: 9, to: startDate)!
-        let trip = Trip(title: "Ten Day Trip", startDate: startDate, endDate: endDate)
+        let trip = Trip(name: "Ten Day Trip", destination: "Test City", startDate: startDate, endDate: endDate)
         
         XCTAssertEqual(trip.totalDays, 10)
     }
@@ -220,7 +221,7 @@ final class ItineraryCanvasXCTest: XCTestCase {
         let context = container.mainContext
         
         // Cycle 1: Insert
-        let trip1 = Trip(title: "First", startDate: Date(), endDate: Date().addingTimeInterval(86400))
+        let trip1 = Trip(name: "First", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
         context.insert(trip1)
         try context.save()
         
@@ -228,7 +229,7 @@ final class ItineraryCanvasXCTest: XCTestCase {
         XCTAssertEqual(try context.fetch(descriptor).count, 1)
         
         // Cycle 2: Insert again
-        let trip2 = Trip(title: "Second", startDate: Date(), endDate: Date().addingTimeInterval(86400))
+        let trip2 = Trip(name: "Second", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
         context.insert(trip2)
         try context.save()
         
@@ -239,6 +240,6 @@ final class ItineraryCanvasXCTest: XCTestCase {
         try context.save()
         
         XCTAssertEqual(try context.fetch(descriptor).count, 1)
-        XCTAssertEqual(try context.fetch(descriptor).first?.title, "Second")
+        XCTAssertEqual(try context.fetch(descriptor).first?.name, "Second")
     }
 }
