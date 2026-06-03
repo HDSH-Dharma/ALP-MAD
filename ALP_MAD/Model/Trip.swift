@@ -19,6 +19,9 @@ final class Trip {
     @Relationship(deleteRule: .cascade, inverse: \BudgetItem.trip)
     var budgetItems: [BudgetItem]
  
+    @Relationship(deleteRule: .cascade)
+    var destinations: [Destination]
+    
     init(
         name: String,
         destination: String,
@@ -26,13 +29,25 @@ final class Trip {
         endDate: Date,
         currency: String = "IDR"
     ) {
-        self.id          = UUID()
-        self.name        = name
-        self.destination = destination
-        self.startDate   = startDate
-        self.endDate     = endDate
-        self.currency    = currency
-        self.budgetItems = []
+        self.id           = UUID()
+        self.name         = name
+        self.destination  = destination
+        self.startDate    = startDate
+        self.endDate      = endDate
+        self.currency     = currency
+        self.budgetItems  = []
+        self.destinations = []
     }
  
+
 }
+extension Trip {
+    var totalDays: Int {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: startDate)
+        let end = calendar.startOfDay(for: endDate)
+        let components = calendar.dateComponents([.day], from: start, to: end)
+        return max(1, (components.day ?? 0) + 1)
+    }
+}
+
