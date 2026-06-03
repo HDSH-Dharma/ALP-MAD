@@ -11,10 +11,10 @@ import SwiftData
 import Charts
 
 struct BudgetDetailView: View {
-    @Environment(\.modelContext) private var context
+    @Environment(\.modelContext)       private var context
+    @Environment(BudgetViewModel.self) private var vm    // shared from app entry point
 
     let trip: Trip
-    @Bindable var vm: BudgetViewModel
 
     @State private var chartMode: ChartMode = .donut
     @State private var filterCategory: BudgetCategory? = nil
@@ -32,6 +32,8 @@ struct BudgetDetailView: View {
         return sorted
     }
 
+    // Computed in the view that observes `trip` directly, so SwiftUI
+    // re-evaluates this whenever budgetItems changes.
     private var breakdown: [(category: BudgetCategory, total: Double, percentage: Double)] {
         vm.categoryBreakdown(for: trip)
     }
@@ -41,7 +43,7 @@ struct BudgetDetailView: View {
             VStack(spacing: 20) {
 
                 // MARK: Header card
-                TripHeaderCard(trip: trip, vm: vm)
+                TripHeaderCard(trip: trip)
                     .padding(.horizontal)
 
                 // MARK: Chart section
@@ -64,21 +66,19 @@ struct BudgetDetailView: View {
                             BudgetDonutChart(
                                 breakdown:   breakdown,
                                 totalBudget: vm.totalBudget(for: trip),
-                                currency:    trip.currency,
-                                vm:          vm
+                                currency:    trip.currency
                             )
                         } else {
                             BudgetBarChart(
                                 breakdown: breakdown,
-                                currency:  trip.currency,
-                                vm:        vm
+                                currency:  trip.currency
                             )
                         }
 
                         // Legend
                         VStack(spacing: 0) {
                             ForEach(breakdown, id: \.category) { item in
-                                CategoryLegendRow(item: item, currency: trip.currency, vm: vm)
+                                CategoryLegendRow(item: item, currency: trip.currency)
                                     .contentShape(Rectangle())
                                     .onTapGesture {
                                         withAnimation(.spring(response: 0.3)) {
@@ -126,7 +126,7 @@ struct BudgetDetailView: View {
                         }
                     } else {
                         ForEach(filteredItems) { item in
-                            BudgetItemRow(item: item, currency: trip.currency, vm: vm)
+                            BudgetItemRow(item: item, currency: trip.currency)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button(role: .destructive) {
                                         vm.deleteItem(item, from: trip, context: context)
@@ -155,7 +155,7 @@ struct BudgetDetailView: View {
                 .padding()
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
                 .padding(.horizontal)
-                .padding(.bottom, 80) // fab clearance
+                .padding(.bottom, 80)
             }
             .padding(.top)
         }
@@ -171,15 +171,13 @@ struct BudgetDetailView: View {
                 }
             }
         }
-        // MARK: Add item sheet
-        .sheet(isPresented: $vm.showAddItem) {
-            BudgetItemFormView(vm: vm, trip: trip, editingItem: nil)
+        .sheet(isPresented: Bindable(vm).showAddItem) {
+            BudgetItemFormView(trip: trip, editingItem: nil)
                 .presentationDetents([.large])
         }
-        // MARK: Edit item sheet
-        .sheet(isPresented: $vm.showEditItem) {
+        .sheet(isPresented: Bindable(vm).showEditItem) {
             if let item = vm.editingItem {
-                BudgetItemFormView(vm: vm, trip: trip, editingItem: item)
+                BudgetItemFormView(trip: trip, editingItem: item)
                     .presentationDetents([.large])
             }
         }

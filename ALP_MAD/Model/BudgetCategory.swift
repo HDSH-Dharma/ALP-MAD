@@ -53,4 +53,28 @@ extension BudgetCategory {
     private static func named(_ name: String, fallback: Color) -> Color {
         UIColor(named: name) != nil ? Color(name) : fallback
     }
+    
+    var watchColor: Color {
+        switch self {
+        case .transportation: return Self.named("categoryBlue",    fallback: .blue)
+        case .food:           return Self.named("categoryOrange",  fallback: .orange)
+        case .activity:       return Self.named("categoryGreen",   fallback: .green)
+        case .accommodation:  return Self.named("categoryPurple",  fallback: .purple)
+        case .shopping:       return Self.named("categoryPink",    fallback: .pink)
+        case .other:          return Self.named("categoryGray",    fallback: .gray)
+        }
+    }
+    
+    var shortName: String {
+        switch self {
+        case .transportation: return "Transport"
+        case .food:           return "Food"
+        case .activity:       return "Activities"
+        case .accommodation:  return "Stay"
+        case .shopping:       return "Shopping"
+        case .other:          return "Other"
+        }
+    }
 }
+
+

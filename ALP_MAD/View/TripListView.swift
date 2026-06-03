@@ -5,15 +5,17 @@
 //  Created by Dharma on 28/05/26.
 //
 
+// TripListView.swift
+// Home screen — list of trips
+
 import SwiftUI
 import SwiftData
 
 struct TripListView: View {
     @Environment(\.modelContext) private var context
+    @Environment(BudgetViewModel.self)  private var vm   // shared from app entry point
     @Query(sort: \Trip.startDate, order: .reverse) private var trips: [Trip]
- 
-    @State private var vm = BudgetViewModel()
- 
+
     var body: some View {
         NavigationStack {
             Group {
@@ -23,9 +25,9 @@ struct TripListView: View {
                     List {
                         ForEach(trips) { trip in
                             NavigationLink {
-                                BudgetDetailView(trip: trip, vm: vm)
+                                BudgetDetailView(trip: trip)
                             } label: {
-                                TripListRow(trip: trip, vm: vm)
+                                TripListRow(trip: trip)
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(role: .destructive) {
@@ -49,14 +51,13 @@ struct TripListView: View {
                     }
                 }
             }
-            .sheet(isPresented: $vm.showAddTrip) {
-                AddTripView(vm: vm)
+            .sheet(isPresented: Bindable(vm).showAddTrip) {
+                AddTripView()
                     .presentationDetents([.medium, .large])
             }
         }
     }
- 
-    // MARK: Empty State
+
     private var emptyState: some View {
         VStack(spacing: 20) {
             Image(systemName: "airplane.departure")

@@ -9,9 +9,9 @@ import SwiftUI
 import SwiftData
 
 struct TripListRow: View {
+    @Environment(BudgetViewModel.self) private var vm
     let trip: Trip
-    let vm: BudgetViewModel
- 
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
@@ -33,12 +33,11 @@ struct TripListRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
- 
-            // Mini category pills
-            if !vm.categoryBreakdown(for: trip).isEmpty {
+            let breakdown = vm.categoryBreakdown(for: trip)
+            if !breakdown.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
-                        ForEach(vm.categoryBreakdown(for: trip).prefix(4), id: \.category) { item in
+                        ForEach(breakdown.prefix(4), id: \.category) { item in
                             HStack(spacing: 4) {
                                 Image(systemName: item.category.icon)
                                     .font(.system(size: 10))
@@ -54,7 +53,7 @@ struct TripListRow: View {
                     }
                 }
             }
- 
+
             HStack {
                 Image(systemName: "calendar")
                     .font(.caption2)
