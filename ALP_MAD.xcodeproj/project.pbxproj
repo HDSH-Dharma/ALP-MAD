@@ -89,6 +89,8 @@
 				Budget_IOS/FormStateTests.swift,
 				Budget_IOS/ItemCRUDTests.swift,
 				Budget_IOS/ItemFormValidationTests.swift,
+				Budget_IOS/ItineraryCanvasSwiftTesting.swift,
+				Budget_IOS/ItineraryCanvasXCTest.swift,
 				Budget_IOS/TripCRUDTests.swift,
 				View/AddTripView.swift,
 				View/BudgetDetailView.swift,
@@ -100,6 +102,12 @@
 				View/Components/EmptyBudgetView.swift,
 				View/Components/TripHeaderCard.swift,
 				View/Components/TripListRow.swift,
+				View/Dashboard/TripDashboardView.swift,
+				View/Itinerary/AddItineraryColumnView.swift,
+				View/Itinerary/InteractiveCanvasView.swift,
+				View/Itinerary/ItineraryMainView.swift,
+				View/Itinerary/TripDaysDetailView.swift,
+				View/TripDetailTabView.swift,
 				View/TripListView.swift,
 			);
 			target = ABE1C1B22FD0090900EB6A9A /* BudgetWatch Watch App */;
@@ -113,6 +121,8 @@
 				Budget_IOS/FormStateTests.swift,
 				Budget_IOS/ItemCRUDTests.swift,
 				Budget_IOS/ItemFormValidationTests.swift,
+				Budget_IOS/ItineraryCanvasSwiftTesting.swift,
+				Budget_IOS/ItineraryCanvasXCTest.swift,
 				Budget_IOS/TripCRUDTests.swift,
 				Model/BudgetCategory.swift,
 				Model/BudgetItem.swift,
@@ -128,8 +138,15 @@
 				View/Components/EmptyBudgetView.swift,
 				View/Components/TripHeaderCard.swift,
 				View/Components/TripListRow.swift,
+				View/Dashboard/TripDashboardView.swift,
+				View/Itinerary/AddItineraryColumnView.swift,
+				View/Itinerary/InteractiveCanvasView.swift,
+				View/Itinerary/ItineraryMainView.swift,
+				View/Itinerary/TripDaysDetailView.swift,
+				View/TripDetailTabView.swift,
 				View/TripListView.swift,
 				ViewModel/BudgetViewModel.swift,
+				ViewModel/ItineraryViewModel.swift,
 			);
 			target = ABE1C1BE2FD0090A00EB6A9A /* BudgetWatch Watch AppTests */;
 		};
@@ -151,6 +168,8 @@
 				Budget_IOS/FormStateTests.swift,
 				Budget_IOS/ItemCRUDTests.swift,
 				Budget_IOS/ItemFormValidationTests.swift,
+				Budget_IOS/ItineraryCanvasSwiftTesting.swift,
+				Budget_IOS/ItineraryCanvasXCTest.swift,
 				Budget_IOS/TripCRUDTests.swift,
 			);
 			target = AB213C422FC7F17600D12F12 /* ALP_MAD */;
@@ -173,8 +192,15 @@
 				View/Components/EmptyBudgetView.swift,
 				View/Components/TripHeaderCard.swift,
 				View/Components/TripListRow.swift,
+				View/Dashboard/TripDashboardView.swift,
+				View/Itinerary/AddItineraryColumnView.swift,
+				View/Itinerary/InteractiveCanvasView.swift,
+				View/Itinerary/ItineraryMainView.swift,
+				View/Itinerary/TripDaysDetailView.swift,
+				View/TripDetailTabView.swift,
 				View/TripListView.swift,
 				ViewModel/BudgetViewModel.swift,
+				ViewModel/ItineraryViewModel.swift,
 			);
 			target = ABE1C29F2FD0187B00EB6A9A /* Budget_IOS */;
 		};
