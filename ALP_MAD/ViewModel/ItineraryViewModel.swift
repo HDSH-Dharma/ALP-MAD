@@ -16,6 +16,21 @@ final class ItineraryViewModel {
     var selectedTrip: Trip
     var selectedDay: Int = 1
     
+    // MARK: - Search State (dipindahkan dari View)
+    var searchText: String = ""
+    var searchResults: [LandmarkPlace] = []
+    var isSearching: Bool = false
+    
+    // MARK: - Discoverable Places (dipindahkan dari View)
+    var discoverablePlaces: [LandmarkPlace] = [
+        LandmarkPlace(name: "Tugu Pahlawan", latitude: -7.2458, longitude: 112.7378, shortDesc: "Monumen bersejarah perjuangan pahlawan.", isUMKM: false),
+        LandmarkPlace(name: "Sentra Kuliner GWalk", latitude: -7.2891, longitude: 112.6415, shortDesc: "Pusat UMKM Kuliner warga lokal dengan cita rasa autentik.", isUMKM: true),
+        LandmarkPlace(name: "Pasar Seni Lokal", latitude: -7.2531, longitude: 112.7401, shortDesc: "Oleh-oleh kerajinan tangan asli Suroboyo.", isUMKM: true)
+    ]
+    
+    // MARK: - Zoom State (dipindahkan dari View)
+    var currentZoomLevel: Double = 0.05
+    
     init(modelContext: ModelContext, trip: Trip) {
         self.modelContext = modelContext
         self.selectedTrip = trip
@@ -57,6 +72,7 @@ final class ItineraryViewModel {
     func moveDestination(from source: IndexSet, to destination: Int) {
         var itemsForDay = filteredDestinations
         itemsForDay.move(fromOffsets: source, toOffset: destination)
+        
         for (index, item) in itemsForDay.enumerated() {
             item.visitOrder = index
         }
@@ -74,14 +90,56 @@ final class ItineraryViewModel {
         }
         saveContext()
     }
-}
-
-// Struktur Data untuk Pin Interaktif di Peta
-struct LandmarkPlace: Identifiable, Equatable {
-    let id = UUID()
-    let name: String
-    let latitude: Double
-    let longitude: Double
-    let shortDesc: String
-    let isUMKM: Bool
+    
+    // MARK: - Search Logic (dipindahkan dari View)
+    func performSearch() {
+        guard !searchText.isEmpty else { return }
+        
+        isSearching = true
+        
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = searchText
+        request.region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: -7.2504, longitude: 112.7424),
+            span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
+        )
+        
+        let search = MKLocalSearch(request: request)
+        search.start { [weak self] response, error in
+            DispatchQueue.main.async {
+                self?.isSearching = false
+                
+                if let error = error {
+                    print("Search error: \(error.localizedDescription)")
+                    return
+                }
+                
+                guard let response = response else { return }
+                
+                self?.searchResults = response.mapItems.map { item in
+                    LandmarkPlace(
+                        name: item.name ?? "Unknown Place",
+                        latitude: item.placemark.coordinate.latitude,
+                        longitude: item.placemark.coordinate.longitude,
+                        shortDesc: item.placemark.title ?? item.name ?? "Tempat ditemukan",
+                        isUMKM: false
+                    )
+                }
+            }
+        }
+    }
+    
+    func clearSearch() {
+        searchText = ""
+        searchResults = []
+    }
+    
+    // MARK: - Zoom Logic (dipindahkan dari View)
+    func calculateZoomIn(currentDelta: Double) -> Double {
+        return max(currentDelta * 0.5, 0.001)
+    }
+    
+    func calculateZoomOut(currentDelta: Double) -> Double {
+        return min(currentDelta * 2.0, 5.0)
+    }
 }
