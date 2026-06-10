@@ -21,7 +21,10 @@ final class Trip: Hashable {
  
     @Relationship(deleteRule: .cascade)
     var destinations: [Destination]
-    
+
+    @Relationship(deleteRule: .cascade, inverse: \JournalEntry.trip)
+    var journalEntries: [JournalEntry]
+
     init(
         name: String,
         destination: String,
@@ -35,8 +38,9 @@ final class Trip: Hashable {
         self.startDate    = startDate
         self.endDate      = endDate
         self.currency     = currency
-        self.budgetItems  = []
-        self.destinations = []
+        self.budgetItems    = []
+        self.destinations   = []
+        self.journalEntries = []
     }
 
     /// Convenience init for the itinerary flow, which only supplies a title.

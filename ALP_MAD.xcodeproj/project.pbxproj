@@ -91,6 +91,7 @@
 				Budget_IOS/ItemFormValidationTests.swift,
 				Budget_IOS/ItineraryCanvasSwiftTesting.swift,
 				Budget_IOS/ItineraryCanvasXCTest.swift,
+				Budget_IOS/JournalCRUDTests.swift,
 				Budget_IOS/TripCRUDTests.swift,
 				Budget_IOS/WatchPayloadTests.swift,
 				View/Budget/BudgetDetailView.swift,
@@ -116,7 +117,6 @@
 				View/Trip/TripListView.swift,
 				ViewModel/ItineraryViewModel.swift,
 				ViewModel/TripJournalVM.swift,
-				Model/TripJournal.swift,
 				View/Cards/JournalCards.swift,
 				View/TripJournalView.swift,
 			);
@@ -133,6 +133,7 @@
 				Budget_IOS/ItemFormValidationTests.swift,
 				Budget_IOS/ItineraryCanvasSwiftTesting.swift,
 				Budget_IOS/ItineraryCanvasXCTest.swift,
+				Budget_IOS/JournalCRUDTests.swift,
 				Budget_IOS/TripCRUDTests.swift,
 				Budget_IOS/WatchPayloadTests.swift,
 				Model/BudgetCategory.swift,
@@ -191,6 +192,7 @@
 				Budget_IOS/ItemFormValidationTests.swift,
 				Budget_IOS/ItineraryCanvasSwiftTesting.swift,
 				Budget_IOS/ItineraryCanvasXCTest.swift,
+				Budget_IOS/JournalCRUDTests.swift,
 				Budget_IOS/TripCRUDTests.swift,
 				Budget_IOS/WatchPayloadTests.swift,
 			);

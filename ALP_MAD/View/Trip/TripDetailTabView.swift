@@ -33,7 +33,7 @@ struct TripDetailTabView: View {
                 .tag(1)
 
             // TAB 3: Trip Journal
-            TripJournalView()
+            TripJournalView(trip: trip)
                 .tabItem {
                     Label("Journal", systemImage: "book.closed.fill")
                 }

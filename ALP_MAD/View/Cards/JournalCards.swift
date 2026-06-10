@@ -7,41 +7,38 @@
 
 import SwiftUI
 
-struct JournalCards: View {
-    @StateObject private var viewModel = TripJournalVM(journal: [])
+struct JournalEntryRow: View {
+    let entry: JournalEntry
+    let vm: JournalViewModel
+
     var body: some View {
-        ScrollView {
-            LazyVStack {
-                ForEach(viewModel.journal) {index in
-                    VStack {
-                        ZStack {
-                            Image(index.image)
-                                .resizable()
-                                .scaledToFit()
-                            Rectangle()
-                                .fill(.black.opacity(0.25))
-                            VStack{
-                                HStack {
-                                    Image(systemName: "calendar")
-                                    Text(index.date, format: .dateTime.day().month().year())
-                                }
-                                .foregroundStyle(Color.white)
-                                .font(Font.caption)
-                                Text(index.title)
-                                    .font(Font.title.bold())
-                                    .foregroundStyle(.white)
-                            }
-                        }
-                        .frame(width: 240, height: 240)
-                        Text(index.entry)
-                    }
-                    .background(Color.white)
-                }
+        VStack(alignment: .leading, spacing: 8) {
+            if let data = entry.photoData, let image = UIImage(data: data) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 180)
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+
+            HStack(spacing: 6) {
+                Image(systemName: "calendar")
+                    .font(.caption2)
+                Text(vm.formattedDate(entry.date))
+                    .font(.caption)
+            }
+            .foregroundStyle(.secondary)
+
+            Text(entry.title)
+                .font(.headline)
+
+            if !entry.note.isEmpty {
+                Text(entry.note)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
         }
+        .padding(.vertical, 6)
     }
-}
-
-#Preview {
-    JournalCards()
 }
