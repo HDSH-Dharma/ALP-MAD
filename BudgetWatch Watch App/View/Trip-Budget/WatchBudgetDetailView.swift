@@ -110,6 +110,5 @@ struct WatchBudgetDetailView: View {
             .listRowBackground(Color.clear)
         }
         .navigationTitle("Detail")
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
