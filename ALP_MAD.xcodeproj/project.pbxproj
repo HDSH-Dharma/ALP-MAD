@@ -89,11 +89,12 @@
 				Budget_IOS/FormStateTests.swift,
 				Budget_IOS/ItemCRUDTests.swift,
 				Budget_IOS/ItemFormValidationTests.swift,
+				Budget_IOS/ItineraryCanvasSwiftTesting.swift,
+				Budget_IOS/ItineraryCanvasXCTest.swift,
 				Budget_IOS/TripCRUDTests.swift,
 				Budget_IOS/WatchPayloadTests.swift,
-				View/AddTripView.swift,
-				View/BudgetDetailView.swift,
-				View/BudgetItemFormView.swift,
+				View/Budget/BudgetDetailView.swift,
+				View/Budget/BudgetItemFormView.swift,
 				View/Components/BudgetBarChart.swift,
 				View/Components/BudgetDonutChart.swift,
 				View/Components/BudgetItemRow.swift,
@@ -101,7 +102,14 @@
 				View/Components/EmptyBudgetView.swift,
 				View/Components/TripHeaderCard.swift,
 				View/Components/TripListRow.swift,
-				View/TripListView.swift,
+				View/Dashboard/TripDashboardView.swift,
+				View/Itinerary/AddItineraryColumnView.swift,
+				View/Itinerary/InteractiveCanvasView.swift,
+				View/Itinerary/ItineraryMainView.swift,
+				View/Itinerary/TripDaysDetailView.swift,
+				View/Trip/AddTripView.swift,
+				View/Trip/TripDetailTabView.swift,
+				View/Trip/TripListView.swift,
 			);
 			target = ABE1C1B22FD0090900EB6A9A /* BudgetWatch Watch App */;
 		};
@@ -114,15 +122,16 @@
 				Budget_IOS/FormStateTests.swift,
 				Budget_IOS/ItemCRUDTests.swift,
 				Budget_IOS/ItemFormValidationTests.swift,
+				Budget_IOS/ItineraryCanvasSwiftTesting.swift,
+				Budget_IOS/ItineraryCanvasXCTest.swift,
 				Budget_IOS/TripCRUDTests.swift,
 				Budget_IOS/WatchPayloadTests.swift,
 				Model/BudgetCategory.swift,
 				Model/BudgetItem.swift,
 				Model/CategoryBreakdownItem.swift,
 				Model/Trip.swift,
-				View/AddTripView.swift,
-				View/BudgetDetailView.swift,
-				View/BudgetItemFormView.swift,
+				View/Budget/BudgetDetailView.swift,
+				View/Budget/BudgetItemFormView.swift,
 				View/Components/BudgetBarChart.swift,
 				View/Components/BudgetDonutChart.swift,
 				View/Components/BudgetItemRow.swift,
@@ -130,8 +139,16 @@
 				View/Components/EmptyBudgetView.swift,
 				View/Components/TripHeaderCard.swift,
 				View/Components/TripListRow.swift,
-				View/TripListView.swift,
+				View/Dashboard/TripDashboardView.swift,
+				View/Itinerary/AddItineraryColumnView.swift,
+				View/Itinerary/InteractiveCanvasView.swift,
+				View/Itinerary/ItineraryMainView.swift,
+				View/Itinerary/TripDaysDetailView.swift,
+				View/Trip/AddTripView.swift,
+				View/Trip/TripDetailTabView.swift,
+				View/Trip/TripListView.swift,
 				ViewModel/BudgetViewModel.swift,
+				ViewModel/ItineraryViewModel.swift,
 			);
 			target = ABE1C1BE2FD0090A00EB6A9A /* BudgetWatch Watch AppTests */;
 		};
@@ -139,9 +156,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				BudgetWatchApp.swift,
-				WatchBudgetDetailView.swift,
-				WatchTripListView.swift,
-				WatchTripRow.swift,
+				"View/Trip-Budget/WatchBudgetDetailView.swift",
+				"View/Trip-Watch/WatchTripListView.swift",
+				"View/Trip-Watch/WatchTripRow.swift",
 			);
 			target = AB213C422FC7F17600D12F12 /* ALP_MAD */;
 		};
@@ -153,6 +170,8 @@
 				Budget_IOS/FormStateTests.swift,
 				Budget_IOS/ItemCRUDTests.swift,
 				Budget_IOS/ItemFormValidationTests.swift,
+				Budget_IOS/ItineraryCanvasSwiftTesting.swift,
+				Budget_IOS/ItineraryCanvasXCTest.swift,
 				Budget_IOS/TripCRUDTests.swift,
 				Budget_IOS/WatchPayloadTests.swift,
 			);
@@ -166,9 +185,8 @@
 				Model/BudgetItem.swift,
 				Model/CategoryBreakdownItem.swift,
 				Model/Trip.swift,
-				View/AddTripView.swift,
-				View/BudgetDetailView.swift,
-				View/BudgetItemFormView.swift,
+				View/Budget/BudgetDetailView.swift,
+				View/Budget/BudgetItemFormView.swift,
 				View/Components/BudgetBarChart.swift,
 				View/Components/BudgetDonutChart.swift,
 				View/Components/BudgetItemRow.swift,
@@ -176,8 +194,16 @@
 				View/Components/EmptyBudgetView.swift,
 				View/Components/TripHeaderCard.swift,
 				View/Components/TripListRow.swift,
-				View/TripListView.swift,
+				View/Dashboard/TripDashboardView.swift,
+				View/Itinerary/AddItineraryColumnView.swift,
+				View/Itinerary/InteractiveCanvasView.swift,
+				View/Itinerary/ItineraryMainView.swift,
+				View/Itinerary/TripDaysDetailView.swift,
+				View/Trip/AddTripView.swift,
+				View/Trip/TripDetailTabView.swift,
+				View/Trip/TripListView.swift,
 				ViewModel/BudgetViewModel.swift,
+				ViewModel/ItineraryViewModel.swift,
 			);
 			target = ABE1C29F2FD0187B00EB6A9A /* Budget_IOS */;
 		};
@@ -185,10 +211,10 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				BudgetWatchApp.swift,
-				WatchBudgetDetailView.swift,
-				WatchTripListView.swift,
+				"View/Trip-Budget/WatchBudgetDetailView.swift",
+				"View/Trip-Watch/WatchTripListView.swift",
+				"View/Trip-Watch/WatchTripRow.swift",
 				WatchTripPayload.swift,
-				WatchTripRow.swift,
 			);
 			target = ABE1C29F2FD0187B00EB6A9A /* Budget_IOS */;
 		};
