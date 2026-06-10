@@ -29,10 +29,10 @@ struct TripDashboardView: View {
                 // --- 1. HEADER PROFILE & GREETING ---
                 HStack(spacing: 16) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Halo, Petualang! 👋")
+                        Text("Halo, Traveller! 👋")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                        Text("Dhevin Tandiono")
+                        Text("User")
                             .font(.title2)
                             .bold()
                             .foregroundColor(.themeDarkText)
@@ -44,7 +44,7 @@ struct TripDashboardView: View {
                         Circle()
                             .fill(Color.themeGold)
                             .frame(width: 50, height: 50)
-                        Text("DT")
+                        Text("U")
                             .font(.headline)
                             .foregroundColor(.white)
                     }

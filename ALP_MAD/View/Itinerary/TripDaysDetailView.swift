@@ -17,7 +17,7 @@ struct TripDaysDetailView: View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(trip.name)
+                    Text(trip.title)
                         .font(.title2)
                         .bold()
                         .foregroundColor(.themeBlue)
@@ -69,20 +69,13 @@ struct TripDaysDetailView: View {
 
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Trip.self, Destination.self, BudgetItem.self, configurations: config)
-    
-    let dummyTrip = Trip(
-        name: "Explore Bali",
-        destination: "Bali",
-        startDate: Date(),
-        endDate: Date().addingTimeInterval(86400 * 3)
-    )
-    
+    let container = try! ModelContainer(for: Trip.self, Destination.self, configurations: config)
+    let dummyTrip = Trip(title: "Explore Bali", startDate: Date(), endDate: Date().addingTimeInterval(86400 * 3))
     let dummyDest = Destination(name: "Pantai Kuta", latitude: -8.7179, longitude: 115.1695, isLocalUMKM: false, visitOrder: 0, dayNumber: 1)
-    let _ = dummyTrip.destinations.append(dummyDest)
-    let _ = container.mainContext.insert(dummyTrip)
+    dummyTrip.destinations.append(dummyDest)
+    container.mainContext.insert(dummyTrip)
     
-    NavigationStack {
+    return NavigationStack {
         TripDaysDetailView(trip: dummyTrip)
     }
     .modelContainer(container)
