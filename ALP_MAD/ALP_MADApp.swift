@@ -26,6 +26,10 @@ struct ALP_MADApp: App {
         WindowGroup {
             TripListView()
                 .environment(vm)
+                .task {
+                    // Ask once and schedule the daily journal reminder.
+                    await JournalReminder().scheduleDailyReminder()
+                }
         }
         .modelContainer(sharedModelContainer)
     }

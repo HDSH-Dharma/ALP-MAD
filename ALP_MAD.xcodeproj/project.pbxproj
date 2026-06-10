@@ -84,6 +84,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ALP_MADApp.swift,
+				JournalReminder.swift,
 				Budget_IOS/BudgetCalculationTests.swift,
 				Budget_IOS/FormattingTests.swift,
 				Budget_IOS/FormStateTests.swift,
@@ -92,6 +93,7 @@
 				Budget_IOS/ItineraryCanvasSwiftTesting.swift,
 				Budget_IOS/ItineraryCanvasXCTest.swift,
 				Budget_IOS/JournalCRUDTests.swift,
+				Budget_IOS/JournalReminderTests.swift,
 				Budget_IOS/TripCRUDTests.swift,
 				Budget_IOS/WatchPayloadTests.swift,
 				View/Budget/BudgetDetailView.swift,
@@ -126,6 +128,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ALP_MADApp.swift,
+				JournalReminder.swift,
 				Budget_IOS/BudgetCalculationTests.swift,
 				Budget_IOS/FormattingTests.swift,
 				Budget_IOS/FormStateTests.swift,
@@ -134,6 +137,7 @@
 				Budget_IOS/ItineraryCanvasSwiftTesting.swift,
 				Budget_IOS/ItineraryCanvasXCTest.swift,
 				Budget_IOS/JournalCRUDTests.swift,
+				Budget_IOS/JournalReminderTests.swift,
 				Budget_IOS/TripCRUDTests.swift,
 				Budget_IOS/WatchPayloadTests.swift,
 				Model/BudgetCategory.swift,
@@ -193,6 +197,7 @@
 				Budget_IOS/ItineraryCanvasSwiftTesting.swift,
 				Budget_IOS/ItineraryCanvasXCTest.swift,
 				Budget_IOS/JournalCRUDTests.swift,
+				Budget_IOS/JournalReminderTests.swift,
 				Budget_IOS/TripCRUDTests.swift,
 				Budget_IOS/WatchPayloadTests.swift,
 			);
@@ -202,6 +207,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ALP_MADApp.swift,
+				JournalReminder.swift,
 				Model/BudgetCategory.swift,
 				Model/BudgetItem.swift,
 				Model/CategoryBreakdownItem.swift,
