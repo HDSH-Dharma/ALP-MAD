@@ -9,9 +9,9 @@ import Foundation
 import SwiftData
 import MapKit
 import SwiftUI
+import Combine
 
-@Observable
-final class ItineraryViewModel {
+final class ItineraryViewModel: ObservableObject {
     var modelContext: ModelContext
     var selectedTrip: Trip
     var selectedDay: Int = 1

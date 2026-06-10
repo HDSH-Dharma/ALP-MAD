@@ -1,8 +1,8 @@
 //
-//  ItineraryCanvasView.swift
-//  ALP_MAD
+// InteractiveCanvasView.swift
+// ALP_MAD
 //
-//  Created by student on 28/05/26.
+// Created by student on 28/05/26.
 //
 
 import SwiftUI
@@ -19,7 +19,21 @@ struct InteractiveCanvasView: View {
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
     ))
     
-    @State private var showSearchBar: Bool = false
+    // MARK: - Modal States
+    @State private var showSearchModal: Bool = false
+    @State private var showAddPlaceSheet: Bool = false
+    @State private var placeToAdd: LandmarkPlace? = nil
+    
+    // MARK: - Bottom Sheet States
+    @State private var sheetHeight: CGFloat = 300
+    @State private var dragOffset: CGFloat = 0
+    @State private var isSheetExpanded: Bool = false
+    private let minHeight: CGFloat = 100
+    private let maxHeight: CGFloat = UIScreen.main.bounds.height - 100
+    
+    // MARK: - Edit Time States
+    @State private var editingDestination: Destination? = nil
+    @State private var showEditTimeSheet: Bool = false
     
     init(trip: Trip, dayNumber: Int, context: ModelContext) {
         _viewModel = State(initialValue: ItineraryViewModel(modelContext: context, trip: trip))
@@ -33,29 +47,46 @@ struct InteractiveCanvasView: View {
             Map(position: $cameraPos) {
                 // Discoverable places
                 ForEach(viewModel.discoverablePlaces) { place in
-                    Annotation(place.name, coordinate: CLLocationCoordinate2D(latitude: place.latitude, longitude: place.longitude)) {
-                        Image(systemName: place.isUMKM ? "storefront.circle.fill" : "mappin.circle.fill")
-                            .font(.title)
-                            .foregroundColor(place.isUMKM ? .themeTeal : .themeBlue)
-                            .background(Circle().fill(Color.white).shadow(radius: 2))
-                            .scaleEffect(selectedPlace == place ? 1.3 : 1.0)
-                            .onTapGesture {
-                                withAnimation(.spring()) { selectedPlace = place }
+                    Annotation(place.name, coordinate: place.coordinate) {
+                        MapAnnotationView(
+                            place: place,
+                            isSelected: selectedPlace == place,
+                            onTap: {
+                                withAnimation(.spring()) {
+                                    selectedPlace = place
+                                    placeToAdd = place
+                                }
                             }
+                        )
                     }
                 }
                 
                 // Search results
                 ForEach(viewModel.searchResults) { place in
-                    Annotation(place.name, coordinate: CLLocationCoordinate2D(latitude: place.latitude, longitude: place.longitude)) {
-                        Image(systemName: "magnifyingglass.circle.fill")
-                            .font(.title)
-                            .foregroundColor(.themeGold)
-                            .background(Circle().fill(Color.white).shadow(radius: 2))
-                            .scaleEffect(selectedPlace == place ? 1.3 : 1.0)
-                            .onTapGesture {
-                                withAnimation(.spring()) { selectedPlace = place }
+                    Annotation(place.name, coordinate: place.coordinate) {
+                        SearchResultAnnotationView(
+                            place: place,
+                            isSelected: selectedPlace == place,
+                            onTap: {
+                                withAnimation(.spring()) {
+                                    selectedPlace = place
+                                    placeToAdd = place
+                                }
                             }
+                        )
+                    }
+                }
+                
+                // Added destinations markers
+                ForEach(viewModel.filteredDestinations) { dest in
+                    Annotation(dest.name, coordinate: CLLocationCoordinate2D(latitude: dest.latitude, longitude: dest.longitude)) {
+                        DestinationMarkerView(
+                            destination: dest,
+                            onTap: {
+                                editingDestination = dest
+                                showEditTimeSheet = true
+                            }
+                        )
                     }
                 }
             }
@@ -63,321 +94,126 @@ struct InteractiveCanvasView: View {
             .onMapCameraChange { context in
                 viewModel.currentZoomLevel = context.region.span.latitudeDelta
             }
-            
-            // MARK: - CONTENT OVERLAY (Glass Effect)
-            VStack(spacing: 0) {
-                Spacer()
-                
-                // Bottom Sheet: Jadwal Aktivitas
-                VStack(alignment: .leading, spacing: 0) {
-                    HStack {
-                        Text("Jadwal Aktivitas").font(.headline).foregroundColor(.themeDarkText)
-                        Spacer()
-                        EditButton()
-                            .foregroundColor(.themeGold)
+            .onTapGesture {
+                if selectedPlace != nil {
+                    withAnimation(.spring()) {
+                        selectedPlace = nil
                     }
-                    .padding()
-                    .background(
-                        Color(.systemBackground)
-                            .opacity(0.85)
-                            .background(.ultraThinMaterial)
-                    )
-                    
-                    List {
-                        if viewModel.filteredDestinations.isEmpty {
-                            Text("Jadwal hari ini masih kosong.\nKlik ikon di peta untuk mulai menambahkan tempat.")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding(.top, 20)
-                                .frame(maxWidth: .infinity)
-                                .listRowBackground(Color.clear)
-                        } else {
-                            ForEach(viewModel.filteredDestinations) { dest in
-                                HStack(spacing: 12) {
-                                    Text(dest.timeString)
-                                        .font(.subheadline).bold()
-                                        .foregroundColor(.themeTeal)
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(dest.name).font(.body).fontWeight(.semibold).foregroundColor(.themeDarkText)
-                                        if !dest.activityDesc.isEmpty {
-                                            Text(dest.activityDesc).font(.caption).foregroundColor(.secondary).lineLimit(1)
-                                        }
-                                    }
-                                    Spacer()
-                                }
-                                .padding(.vertical, 4)
-                            }
-                            .onDelete(perform: viewModel.deleteDestination)
-                            .onMove(perform: viewModel.moveDestination)
-                        }
-                    }
-                    .listStyle(.plain)
-                    .frame(maxHeight: 300)
-                    .scrollContentBackground(.hidden)
-                    .background(
-                        Color(.systemBackground)
-                            .opacity(0.85)
-                            .background(.ultraThinMaterial)
-                    )
                 }
-                .cornerRadius(20)
-                .shadow(color: .black.opacity(0.2), radius: 10, y: -2)
             }
-            .ignoresSafeArea(edges: .bottom)
-            .padding(.bottom, 0)
             
             // MARK: - OVERLAY UI ELEMENTS
-            ZStack {
+            VStack {
+                Spacer()
                 
-                // Search Bar (Top Left)
-                VStack(alignment: .leading, spacing: 0) {
-                    HStack {
-                        Button(action: {
-                            withAnimation(.spring()) {
-                                showSearchBar.toggle()
-                                if !showSearchBar {
-                                    viewModel.clearSearch()
-                                }
-                            }
-                        }) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.title3.bold())
-                                .foregroundColor(.themeBlue)
-                                .frame(width: 44, height: 44)
-                                .background(
-                                    Color.white
-                                        .opacity(0.9)
-                                        .background(.ultraThinMaterial)
-                                )
-                                .clipShape(Circle())
-                                .shadow(radius: 3)
-                        }
-                        Spacer()
-                    }
-                    
-                    Spacer()
-                }
-                .padding(.leading, 16)
-                .padding(.top, 16)
-                
-                // Zoom Buttons (Bottom Right, di atas bottom sheet)
-                VStack(spacing: 8) {
-                    Spacer()
-                    
-                    VStack(spacing: 8) {
-                        Button(action: zoomIn) {
-                            Image(systemName: "plus")
-                                .font(.title2.bold())
-                                .foregroundColor(.themeTeal)
-                                .frame(width: 40, height: 40)
-                                .background(
-                                    Color.white
-                                        .opacity(0.9)
-                                        .background(.ultraThinMaterial)
-                                )
-                                .clipShape(Circle())
-                                .shadow(radius: 3)
-                        }
-                        
-                        Button(action: zoomOut) {
-                            Image(systemName: "minus")
-                                .font(.title2.bold())
-                                .foregroundColor(.themeTeal)
-                                .frame(width: 40, height: 40)
-                                .background(
-                                    Color.white
-                                        .opacity(0.9)
-                                        .background(.ultraThinMaterial)
-                                )
-                                .clipShape(Circle())
-                                .shadow(radius: 3)
-                        }
-                    }
-                    .padding(.bottom, 330) // Disesuaikan agar di atas bottom sheet
-                }
-                .padding(.trailing, 16)
-                
-                // Search Results Panel
-                if showSearchBar {
-                    VStack(spacing: 0) {
-                        Spacer()
-                        
-                        VStack(spacing: 0) {
-                            HStack {
-                                Image(systemName: "magnifyingglass")
-                                    .foregroundColor(.secondary)
-                                
-                                TextField("Cari tempat...", text: $viewModel.searchText)
-                                    .textFieldStyle(.plain)
-                                    .foregroundColor(.themeDarkText)
-                                    .onSubmit {
-                                        viewModel.performSearch()
-                                    }
-                                
-                                if !viewModel.searchText.isEmpty {
-                                    Button(action: {
-                                        viewModel.clearSearch()
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
-                                
-                                Button(action: viewModel.performSearch) {
-                                    Text("Cari")
-                                        .font(.subheadline.bold())
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(Color.themeTeal)
-                                        .cornerRadius(6)
-                                }
-                            }
-                            .padding(10)
-                            .background(
-                                Color(.systemBackground)
-                                    .opacity(0.95)
-                                    .background(.ultraThinMaterial)
-                            )
-                            .cornerRadius(12)
-                            .shadow(color: .black.opacity(0.15), radius: 5, y: 2)
-                            
-                            if !viewModel.searchResults.isEmpty {
-                                ScrollView {
-                                    VStack(spacing: 0) {
-                                        ForEach(viewModel.searchResults) { place in
-                                            Button(action: {
-                                                selectedPlace = place
-                                                cameraPos = .region(MKCoordinateRegion(
-                                                    center: CLLocationCoordinate2D(latitude: place.latitude, longitude: place.longitude),
-                                                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-                                                ))
-                                            }) {
-                                                HStack {
-                                                    Image(systemName: "mappin.circle.fill")
-                                                        .foregroundColor(.themeGold)
-                                                    VStack(alignment: .leading, spacing: 2) {
-                                                        Text(place.name)
-                                                            .font(.subheadline.bold())
-                                                            .foregroundColor(.themeDarkText)
-                                                        Text(place.shortDesc)
-                                                            .font(.caption)
-                                                            .foregroundColor(.secondary)
-                                                            .lineLimit(1)
-                                                    }
-                                                    Spacer()
-                                                    Image(systemName: "chevron.right")
-                                                        .foregroundColor(.secondary)
-                                                        .font(.caption)
-                                                }
-                                                .padding(.vertical, 8)
-                                                .padding(.horizontal, 12)
-                                            }
-                                            
-                                            if place.id != viewModel.searchResults.last?.id {
-                                                Divider()
-                                            }
-                                        }
-                                    }
-                                }
-                                .frame(maxHeight: 150)
-                                .background(
-                                    Color(.systemBackground)
-                                        .opacity(0.95)
-                                        .background(.ultraThinMaterial)
-                                )
-                                .cornerRadius(12)
-                                .shadow(color: .black.opacity(0.15), radius: 5, y: 2)
-                                .padding(.top, 4)
-                            }
-                        }
-                        .padding()
-                    }
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                }
-                
-                // Popup Info Tempat
-                if let place = selectedPlace {
-                    VStack {
-                        Spacer()
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack(alignment: .top) {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.themeTurquoiseLight)
-                                    .frame(width: 60, height: 60)
-                                    .overlay(Image(systemName: "photo").foregroundColor(.themeTeal))
-                                
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(place.name).font(.headline).foregroundColor(.themeDarkText)
-                                    if place.isUMKM {
-                                        Text("SDG 8: UMKM Lokal")
-                                            .font(.caption2).bold()
-                                            .padding(.horizontal, 6).padding(.vertical, 2)
-                                            .background(Color.themeGold.opacity(0.2))
-                                            .foregroundColor(.themeGold)
-                                            .cornerRadius(4)
-                                    }
-                                    Text(place.shortDesc)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(2)
-                                }
-                                
-                                Spacer()
-                                
-                                Button(action: {
-                                    withAnimation(.spring()) {
-                                        selectedPlace = nil
-                                    }
-                                }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .font(.title3)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                            
-                            Button(action: {
-                                viewModel.addDestination(place: place)
-                                withAnimation { selectedPlace = nil }
-                            }) {
-                                Text("Tambahkan ke Itinerary")
-                                    .font(.subheadline).bold()
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 10)
-                                    .background(Color.themeTeal)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                            }
-                        }
-                        .padding(12)
-                        .background(
-                            Color(.systemBackground)
-                                .opacity(0.95)
-                                .background(.ultraThinMaterial)
-                        )
-                        .cornerRadius(12)
-                        .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
-                        .padding()
-                        .padding(.bottom, 250) // Di atas bottom sheet
-                    }
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
+                // MARK: - ZOOM BUTTONS (Bottom Right, follows sheet)
+                ZoomControlsView(
+                    onZoomIn: zoomIn,
+                    onZoomOut: zoomOut,
+                    bottomPadding: sheetHeight + dragOffset + 16,
+                    isHidden: isSheetExpanded
+                )
             }
-            .ignoresSafeArea()
+            
+            // MARK: - BOTTOM SHEET (Draggable Modal)
+            BottomSheetView(
+                viewModel: viewModel,
+                sheetHeight: $sheetHeight,
+                dragOffset: $dragOffset,
+                isSheetExpanded: $isSheetExpanded,
+                minHeight: minHeight,
+                maxHeight: maxHeight,
+                onDestinationTap: { dest in
+                    editingDestination = dest
+                    showEditTimeSheet = true
+                }
+            )
+            
+            // MARK: - FLOATING ACTION BUTTONS (Top)
+            TopActionBarView(
+                onSearchTap: {
+                    showSearchModal = true
+                },
+                onSaveTap: {
+                    viewModel.saveContext()
+                    dismiss()
+                }
+            )
         }
         .navigationTitle("Hari Ke-\(viewModel.selectedDay)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    viewModel.saveContext()
-                    dismiss()
+            ToolbarItem(placement: .principal) {
+                Text("Hari Ke-\(viewModel.selectedDay)")
+                    .font(.headline)
+                    .foregroundColor(.themeDarkText)
+            }
+        }
+        // MARK: - SEARCH MODAL
+        .sheet(isPresented: $showSearchModal) {
+            SearchModalView(
+                viewModel: viewModel,
+                onSelectPlace: { place in
+                    showSearchModal = false
+                    selectedPlace = place
+                    placeToAdd = place
+                    showAddPlaceSheet = true
+                    cameraPos = .region(MKCoordinateRegion(
+                        center: place.coordinate,
+                        span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                    ))
                 }
-                .fontWeight(.bold)
-                .foregroundColor(.themeBlue)
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+        // MARK: - ADD PLACE SHEET
+        .sheet(isPresented: $showAddPlaceSheet) {
+            if let place = placeToAdd {
+                AddPlaceSheet(
+                    place: place,
+                    viewModel: viewModel,
+                    onAdd: { timeString in
+                        let result = viewModel.addDestinationWithTime(place: place, timeString: timeString)
+                        if result.success {
+                            showAddPlaceSheet = false
+                            placeToAdd = nil
+                            selectedPlace = nil
+                        }
+                    },
+                    onCancel: {
+                        showAddPlaceSheet = false
+                        placeToAdd = nil
+                        selectedPlace = nil
+                    },
+                    errorMessage: viewModel.timeConflictError
+                )
+            }
+        }
+        // MARK: - EDIT TIME SHEET
+        .sheet(isPresented: $showEditTimeSheet) {
+            if let dest = editingDestination {
+                EditTimeSheet(
+                    destination: dest,
+                    viewModel: viewModel,
+                    onSave: { newTimeString in
+                        let result = viewModel.updateDestinationTime(destination: dest, newTimeString: newTimeString)
+                        if result.success {
+                            showEditTimeSheet = false
+                            editingDestination = nil
+                        }
+                    },
+                    onCancel: {
+                        showEditTimeSheet = false
+                        editingDestination = nil
+                    },
+                    onDelete: {
+                        viewModel.deleteDestinationById(dest.id)
+                        showEditTimeSheet = false
+                        editingDestination = nil
+                    },
+                    errorMessage: viewModel.timeConflictError
+                )
             }
         }
     }
@@ -407,6 +243,307 @@ struct InteractiveCanvasView: View {
                 ))
             }
         }
+    }
+}
+
+// MARK: - MAP ANNOTATION VIEWS
+struct MapAnnotationView: View {
+    let place: LandmarkPlace
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        Image(systemName: place.isUMKM ? "storefront.circle.fill" : "mappin.circle.fill")
+            .font(.title)
+            .foregroundColor(place.isUMKM ? .themeTeal : .themeBlue)
+            .background(Circle().fill(Color.white).shadow(radius: 2))
+            .scaleEffect(isSelected ? 1.3 : 1.0)
+            .onTapGesture(perform: onTap)
+    }
+}
+
+struct SearchResultAnnotationView: View {
+    let place: LandmarkPlace
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        Image(systemName: "magnifyingglass.circle.fill")
+            .font(.title)
+            .foregroundColor(.themeGold)
+            .background(Circle().fill(Color.white).shadow(radius: 2))
+            .scaleEffect(isSelected ? 1.3 : 1.0)
+            .onTapGesture(perform: onTap)
+    }
+}
+
+struct DestinationMarkerView: View {
+    let destination: Destination
+    let onTap: () -> Void
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color.themeGold)
+                .frame(width: 32, height: 32)
+                .shadow(radius: 2)
+            Text("\(destination.visitOrder + 1)")
+                .font(.caption.bold())
+                .foregroundColor(.white)
+        }
+        .onTapGesture(perform: onTap)
+    }
+}
+
+// MARK: - ZOOM CONTROLS VIEW
+struct ZoomControlsView: View {
+    let onZoomIn: () -> Void
+    let onZoomOut: () -> Void
+    let bottomPadding: CGFloat
+    let isHidden: Bool
+    
+    var body: some View {
+        HStack {
+            Spacer()
+            
+            VStack(spacing: 8) {
+                Button(action: onZoomIn) {
+                    Image(systemName: "plus")
+                        .font(.title2.bold())
+                        .foregroundColor(.themeTeal)
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Color.white
+                                .opacity(0.9)
+                                .background(.ultraThinMaterial)
+                        )
+                        .clipShape(Circle())
+                        .shadow(radius: 3)
+                }
+                
+                Button(action: onZoomOut) {
+                    Image(systemName: "minus")
+                        .font(.title2.bold())
+                        .foregroundColor(.themeTeal)
+                        .frame(width: 40, height: 40)
+                        .background(
+                            Color.white
+                                .opacity(0.9)
+                                .background(.ultraThinMaterial)
+                        )
+                        .clipShape(Circle())
+                        .shadow(radius: 3)
+                }
+            }
+            .padding(.trailing, 16)
+            .padding(.bottom, bottomPadding)
+            .opacity(isHidden ? 0 : 1)
+            .animation(.easeInOut(duration: 0.2), value: isHidden)
+        }
+    }
+}
+
+// MARK: - TOP ACTION BAR VIEW
+struct TopActionBarView: View {
+    let onSearchTap: () -> Void
+    let onSaveTap: () -> Void
+    
+    var body: some View {
+        VStack {
+            HStack(spacing: 12) {
+                // Search Button
+                Button(action: onSearchTap) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.title3.bold())
+                        .foregroundColor(.themeBlue)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Color.white
+                                .opacity(0.9)
+                                .background(.ultraThinMaterial)
+                        )
+                        .clipShape(Circle())
+                        .shadow(radius: 3)
+                }
+                
+                Spacer()
+                
+                // Save Button
+                Button(action: onSaveTap) {
+                    Text("Save")
+                        .font(.subheadline.bold())
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color.themeBlue)
+                        .cornerRadius(22)
+                        .shadow(radius: 3)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            
+            Spacer()
+        }
+    }
+}
+
+// MARK: - BOTTOM SHEET VIEW
+struct BottomSheetView: View {
+    @ObservedObject var viewModel: ItineraryViewModel
+    @Binding var sheetHeight: CGFloat
+    @Binding var dragOffset: CGFloat
+    @Binding var isSheetExpanded: Bool
+    let minHeight: CGFloat
+    let maxHeight: CGFloat
+    let onDestinationTap: (Destination) -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Drag Handle
+            DragHandleView(
+                onDragChanged: { value in
+                    dragOffset = value.translation.height
+                },
+                onDragEnded: { value in
+                    handleDragEnd(translation: value.translation.height)
+                }
+            )
+            
+            // Header
+            BottomSheetHeader(destinationCount: viewModel.filteredDestinations.count)
+            
+            // Content
+            BottomSheetContent(
+                destinations: viewModel.filteredDestinations,
+                onDestinationTap: onDestinationTap
+            )
+        }
+        .frame(height: sheetHeight + dragOffset)
+        .background(
+            Color(.systemBackground)
+                .opacity(0.95)
+                .background(.ultraThinMaterial)
+        )
+        .cornerRadius(20)
+        .shadow(color: .black.opacity(0.2), radius: 10, y: -2)
+        .ignoresSafeArea(edges: .bottom)
+        .animation(.spring(), value: isSheetExpanded)
+    }
+    
+    private func handleDragEnd(translation: CGFloat) {
+        let newHeight = sheetHeight - translation
+        
+        if newHeight > maxHeight * 0.7 {
+            withAnimation(.spring()) {
+                sheetHeight = maxHeight
+                isSheetExpanded = true
+            }
+        } else if newHeight < minHeight + 50 {
+            withAnimation(.spring()) {
+                sheetHeight = minHeight
+                isSheetExpanded = false
+            }
+        } else {
+            withAnimation(.spring()) {
+                sheetHeight = max(minHeight, min(maxHeight, newHeight))
+                isSheetExpanded = false
+            }
+        }
+        dragOffset = 0
+    }
+}
+
+// MARK: - DRAG HANDLE VIEW
+struct DragHandleView: View {
+    let onDragChanged: (DragGesture.Value) -> Void
+    let onDragEnded: (DragGesture.Value) -> Void
+    
+    var body: some View {
+        RoundedRectangle(cornerRadius: 3)
+            .fill(Color.gray.opacity(0.4))
+            .frame(width: 40, height: 5)
+            .padding(.top, 8)
+            .padding(.bottom, 4)
+            .gesture(
+                DragGesture()
+                    .onChanged(onDragChanged)
+                    .onEnded(onDragEnded)
+            )
+    }
+}
+
+// MARK: - BOTTOM SHEET HEADER
+struct BottomSheetHeader: View {
+    let destinationCount: Int
+    
+    var body: some View {
+        HStack {
+            Text("Jadwal Aktivitas")
+                .font(.headline)
+                .foregroundColor(.themeDarkText)
+            Spacer()
+            if destinationCount > 0 {
+                Button("Edit") {
+                    // Toggle edit mode if needed
+                }
+                .foregroundColor(.themeGold)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.bottom, 8)
+    }
+}
+
+// MARK: - BOTTOM SHEET CONTENT
+struct BottomSheetContent: View {
+    let destinations: [Destination]
+    let onDestinationTap: (Destination) -> Void
+    
+    var body: some View {
+        ScrollView {
+            if destinations.isEmpty {
+                EmptyStateView()
+            } else {
+                LazyVStack(spacing: 0) {
+                    ForEach(destinations) { dest in
+                        DestinationRow(
+                            destination: dest,
+                            onTap: {
+                                onDestinationTap(dest)
+                            }
+                        )
+                        
+                        if dest.id != destinations.last?.id {
+                            Divider()
+                                .padding(.leading, 60)
+                        }
+                    }
+                }
+                .padding(.bottom, 20)
+            }
+        }
+        .frame(maxHeight: .infinity)
+    }
+}
+
+// MARK: - EMPTY STATE VIEW
+struct EmptyStateView: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "map")
+                .font(.system(size: 40))
+                .foregroundColor(.secondary.opacity(0.5))
+            Text("Jadwal hari ini masih kosong.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            Text("Klik ikon di peta atau gunakan tombol search untuk menambahkan tempat.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.top, 20)
+        .frame(maxWidth: .infinity)
     }
 }
 
