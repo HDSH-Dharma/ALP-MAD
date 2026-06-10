@@ -75,7 +75,7 @@ struct BudgetItemFormView: View {
                                 .foregroundStyle(vm.itemCategory.swiftUIColor)
                         }
                         Spacer()
-                        let parsed = Double(vm.itemAmount.replacingOccurrences(of: ",", with: "")) ?? 0
+                        let parsed = BudgetViewModel.parseAmount(vm.itemAmount) ?? 0
                         Text(vm.formatCurrency(parsed, currency: trip.currency))
                             .font(.subheadline)
                             .fontWeight(.semibold)

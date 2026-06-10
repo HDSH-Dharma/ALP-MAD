@@ -46,17 +46,11 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate {
         WCSession.default.activate()
     }
  
-    // MARK: - iPhone → kirim ke Watch
- 
-    func sendTrips(_ trips: [Trip]) {
-        guard WCSession.isSupported(),
-              WCSession.default.activationState == .activated else { return }
- 
-        #if os(iOS)
-        guard WCSession.default.isWatchAppInstalled else { return }
-        #endif
- 
-        let payloads = trips.map { trip in
+    // MARK: - Payload mapping & (de)serialization
+    // Pure functions, separated from WCSession so they can be unit tested.
+
+    static func payloads(from trips: [Trip]) -> [WatchTripPayload] {
+        trips.map { trip in
             WatchTripPayload(
                 id:          trip.id.uuidString,
                 name:        trip.name,
@@ -75,21 +69,40 @@ final class WatchConnectivityManager: NSObject, WCSessionDelegate {
                 }
             )
         }
- 
-        guard let data = try? JSONEncoder().encode(payloads) else { return }
- 
-        // updateApplicationContext: Watch terima data ini
-        try? WCSession.default.updateApplicationContext(["trips": data])
     }
- 
+
+    static func encodeContext(_ payloads: [WatchTripPayload]) -> [String: Any]? {
+        guard let data = try? JSONEncoder().encode(payloads) else { return nil }
+        return ["trips": data]
+    }
+
+    static func decodePayloads(from applicationContext: [String: Any]) -> [WatchTripPayload]? {
+        guard let data = applicationContext["trips"] as? Data else { return nil }
+        return try? JSONDecoder().decode([WatchTripPayload].self, from: data)
+    }
+
+    // MARK: - iPhone → kirim ke Watch
+
+    func sendTrips(_ trips: [Trip]) {
+        guard WCSession.isSupported(),
+              WCSession.default.activationState == .activated else { return }
+
+        #if os(iOS)
+        guard WCSession.default.isWatchAppInstalled else { return }
+        #endif
+
+        guard let context = Self.encodeContext(Self.payloads(from: trips)) else { return }
+
+        // updateApplicationContext: Watch terima data ini
+        try? WCSession.default.updateApplicationContext(context)
+    }
+
     // MARK: - Watch → terima dari iPhone
- 
+
     func session(_ session: WCSession,
                  didReceiveApplicationContext applicationContext: [String: Any]) {
-        guard let data = applicationContext["trips"] as? Data,
-              let payloads = try? JSONDecoder().decode([WatchTripPayload].self, from: data)
-        else { return }
- 
+        guard let payloads = Self.decodePayloads(from: applicationContext) else { return }
+
         DispatchQueue.main.async {
             self.receivedTrips = payloads
         }

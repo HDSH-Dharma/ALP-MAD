@@ -9,31 +9,22 @@ import SwiftUI
 import Charts
 
 struct WatchBudgetDetailView: View {
+    @Environment(BudgetViewModel.self) private var vm
+
     let trip: WatchTripPayload
- 
+
     private var totalBudget: Double {
-        trip.items.reduce(0) { $0 + $1.amount }
+        vm.totalBudget(for: trip)
     }
- 
-    private var breakdown: [(category: String, icon: String, color: Color, total: Double, percentage: Double)] {
-        var grouped: [String: Double] = [:]
-        for item in trip.items {
-            grouped[item.category, default: 0] += item.amount
-        }
-        let total = grouped.values.reduce(0, +)
-        return grouped
-            .map { key, value in
-                // Now safely mapping to your actual BudgetCategory enum properties
-                let cat = BudgetCategory(rawValue: key) ?? .other
-                return (key, cat.icon, cat.watchColor, value, total > 0 ? value / total : 0)
-            }
-            .sorted { $0.total > $1.total }
+
+    private var breakdown: [CategoryBreakdownItem] {
+        vm.categoryBreakdown(for: trip)
     }
- 
+
     private var duration: Int {
-        Calendar.current.dateComponents([.day], from: trip.startDate, to: trip.endDate).day ?? 0
+        vm.durationDays(from: trip.startDate, to: trip.endDate)
     }
- 
+
     var body: some View {
         List {
             // MARK: Summary Section
@@ -42,13 +33,13 @@ struct WatchBudgetDetailView: View {
                     Text(trip.destination)
                         .font(.system(size: 16, weight: .bold))
                         .multilineTextAlignment(.center)
-                    
-                    Text(formatCurrency(totalBudget, currency: trip.currency))
+
+                    Text(vm.formatCurrency(totalBudget, currency: trip.currency))
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(.blue)
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
-                    
+
                     Text("Total Estimasi")
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
@@ -57,7 +48,7 @@ struct WatchBudgetDetailView: View {
                 .padding(.vertical, 4)
             }
             .listRowBackground(Color.clear)
-            
+
             // MARK: Visual Chart Section
             if !breakdown.isEmpty {
                 Section(header: Text("Alokasi Dana")) {
@@ -67,35 +58,34 @@ struct WatchBudgetDetailView: View {
                             innerRadius: .ratio(0.65),
                             angularInset: 1.5
                         )
-                        .foregroundStyle(item.color)
+                        .foregroundStyle(item.category.watchColor)
                     }
                     .frame(height: 100)
                     .padding(.vertical, 6)
                 }
             }
-            
+
             // MARK: Breakdown List Section
             Section(header: Text("Kategori")) {
                 ForEach(breakdown, id: \.category) { item in
                     HStack(spacing: 8) {
-                        Image(systemName: item.icon)
+                        Image(systemName: item.category.icon)
                             .font(.system(size: 11))
-                            .foregroundStyle(item.color)
+                            .foregroundStyle(item.category.watchColor)
                             .frame(width: 16)
-                        
+
                         VStack(alignment: .leading, spacing: 1) {
-                            // Uses your clean watch short names (e.g. "Stay", "Transport", "Food")
-                            Text(BudgetCategory(rawValue: item.category)?.shortName ?? item.category)
+                            Text(item.category.shortName)
                                 .font(.system(size: 12, weight: .medium))
                                 .lineLimit(1)
                             Text("\(Int(item.percentage * 100))%")
                                 .font(.system(size: 10))
                                 .foregroundStyle(.secondary)
                         }
-                        
+
                         Spacer()
-                        
-                        Text(formatCurrency(item.total, currency: trip.currency))
+
+                        Text(vm.formatCurrency(item.total, currency: trip.currency))
                             .font(.system(size: 12, weight: .medium))
                             .minimumScaleFactor(0.6)
                             .lineLimit(1)
@@ -103,7 +93,7 @@ struct WatchBudgetDetailView: View {
                     .padding(.vertical, 2)
                 }
             }
-            
+
             // MARK: Footer Info
             Section {
                 HStack {
@@ -122,13 +112,4 @@ struct WatchBudgetDetailView: View {
         .navigationTitle("Detail")
         .navigationBarTitleDisplayMode(.inline)
     }
-}
-
-func formatCurrency(_ amount: Double, currency: String) -> String {
-    let fmt = NumberFormatter()
-    fmt.numberStyle           = .currency
-    fmt.currencyCode          = currency
-    fmt.maximumFractionDigits = currency == "IDR" ? 0 : 2
-    fmt.maximumIntegerDigits  = 10
-    return fmt.string(from: NSNumber(value: amount)) ?? "-"
 }

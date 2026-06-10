@@ -25,6 +25,13 @@ import SwiftData
             #expect(vm.totalBudget(for: trip) == 1_000_000)
         }
 
+        @Test("Total budget is 0 for empty trip")
+        func totalBudgetEmptyTrip() {
+            let vm   = BudgetViewModel()
+            let trip = makeTrip()
+            #expect(vm.totalBudget(for: trip) == 0)
+        }
+
         @Test("Total for category sums only that category")
         func totalForCategory() {
             let vm   = BudgetViewModel()
@@ -101,23 +108,60 @@ import SwiftData
             #expect(bd.count == 1)
             #expect(bd.first?.category == .food)
         }
-    }
- 
-    @MainActor
-    private func makeContext() throws -> ModelContext {
-        let schema = Schema([Trip.self, BudgetItem.self])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: schema, configurations: [config])
-        return ModelContext(container)
-    }
- 
-    private func makeTrip(name: String = "Test Trip",
-                  destination: String = "Bali",
-                  days: Int = 5,
-                  currency: String = "IDR") -> Trip {
-        let start = Date()
-        let end   = Calendar.current.date(byAdding: .day, value: days, to: start)!
-        return Trip(name: name, destination: destination,
-                    startDate: start, endDate: end, currency: currency)
+
+        @Test("Category breakdown is empty for empty trip")
+        func breakdownEmptyTrip() {
+            let vm   = BudgetViewModel()
+            let trip = makeTrip()
+            #expect(vm.categoryBreakdown(for: trip).isEmpty)
+        }
+
+        @Test("Items sorted newest first")
+        func itemsSortedNewestFirst() {
+            let vm   = BudgetViewModel()
+            let trip = makeTrip()
+            let old  = BudgetItem(title: "Old", amount: 100, category: .food)
+            old.createdAt = date(2026, 6, 1)
+            let new  = BudgetItem(title: "New", amount: 200, category: .food)
+            new.createdAt = date(2026, 6, 3)
+            trip.budgetItems = [old, new]
+
+            let items = vm.items(in: trip)
+            #expect(items.map(\.title) == ["New", "Old"])
+        }
+
+        @Test("Items filtered by category")
+        func itemsFilteredByCategory() {
+            let vm   = BudgetViewModel()
+            let trip = makeTrip()
+            trip.budgetItems = [
+                BudgetItem(title: "Lunch",  amount: 100, category: .food),
+                BudgetItem(title: "Flight", amount: 200, category: .transportation)
+            ]
+            let items = vm.items(in: trip, filteredBy: .food)
+            #expect(items.count == 1)
+            #expect(items.first?.title == "Lunch")
+        }
+
+        @Test("Items filter with no match returns empty")
+        func itemsFilterNoMatch() {
+            let vm   = BudgetViewModel()
+            let trip = makeTrip()
+            trip.budgetItems = [BudgetItem(title: "Lunch", amount: 100, category: .food)]
+            #expect(vm.items(in: trip, filteredBy: .shopping).isEmpty)
+        }
     }
 
+private func date(_ year: Int, _ month: Int, _ day: Int) -> Date {
+    Calendar.current.date(from: DateComponents(year: year, month: month, day: day))!
+}
+
+private func makeTrip(name: String = "Test Trip",
+              destination: String = "Bali",
+              days: Int = 5,
+              currency: String = "IDR") -> Trip {
+    let start = date(2026, 6, 1)
+    let end   = Calendar.current.date(byAdding: .day, value: days, to: start)!
+    return Trip(name: name, destination: destination,
+                startDate: start, endDate: end, currency: currency)
+}

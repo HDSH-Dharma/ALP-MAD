@@ -90,6 +90,7 @@
 				Budget_IOS/ItemCRUDTests.swift,
 				Budget_IOS/ItemFormValidationTests.swift,
 				Budget_IOS/TripCRUDTests.swift,
+				Budget_IOS/WatchPayloadTests.swift,
 				View/AddTripView.swift,
 				View/BudgetDetailView.swift,
 				View/BudgetItemFormView.swift,
@@ -114,6 +115,7 @@
 				Budget_IOS/ItemCRUDTests.swift,
 				Budget_IOS/ItemFormValidationTests.swift,
 				Budget_IOS/TripCRUDTests.swift,
+				Budget_IOS/WatchPayloadTests.swift,
 				Model/BudgetCategory.swift,
 				Model/BudgetItem.swift,
 				Model/CategoryBreakdownItem.swift,
@@ -152,6 +154,7 @@
 				Budget_IOS/ItemCRUDTests.swift,
 				Budget_IOS/ItemFormValidationTests.swift,
 				Budget_IOS/TripCRUDTests.swift,
+				Budget_IOS/WatchPayloadTests.swift,
 			);
 			target = AB213C422FC7F17600D12F12 /* ALP_MAD */;
 		};
