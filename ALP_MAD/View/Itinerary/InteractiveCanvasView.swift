@@ -198,8 +198,9 @@ struct InteractiveCanvasView: View {
                     },
                     errorMessage: viewModel.timeConflictError
                 )
-                .presentationDetents([.medium, .large])
+                .presentationDetents([.height(250), .medium, .large])
                 .presentationDragIndicator(.visible)
+                .presentationBackgroundInteraction(.enabled(upThrough: .medium))
             }
         }
         // MARK: - EDIT TIME SHEET
