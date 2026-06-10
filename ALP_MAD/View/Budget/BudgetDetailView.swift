@@ -25,17 +25,11 @@ struct BudgetDetailView: View {
     }
 
     private var filteredItems: [BudgetItem] {
-        let sorted = trip.budgetItems.sorted { $0.createdAt > $1.createdAt }
-        if let cat = filterCategory {
-            return sorted.filter { $0.category == cat }
-        }
-        return sorted
+        vm.items(in: trip, filteredBy: filterCategory)
     }
 
     private var breakdown: [CategoryBreakdownItem] {
         vm.categoryBreakdown(for: trip)
-            .sorted { $0.total > $1.total }
-            .map { CategoryBreakdownItem(category: $0.category, total: $0.total, percentage: $0.percentage) }
     }
     
     private var legendView: some View {

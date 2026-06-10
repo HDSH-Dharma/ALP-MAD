@@ -31,6 +31,34 @@ import SwiftData
             #expect(result.contains("99.99") || result.contains("99,99"))
         }
 
+        @Test("Zero amount formats without crashing")
+        func zeroAmount() {
+            let vm     = BudgetViewModel()
+            let result = vm.formatCurrency(0, currency: "IDR")
+            #expect(result.contains("0"))
+        }
+
+        @Test("formatRaw whole amount has no grouping separator")
+        func formatRawWhole() {
+            let vm = BudgetViewModel()
+            #expect(vm.formatRaw(1_500_000) == "1500000")
+        }
+
+        @Test("formatRaw keeps up to two decimals")
+        func formatRawDecimals() {
+            let vm = BudgetViewModel()
+            #expect(vm.formatRaw(99.99) == "99.99")
+        }
+
+        @Test("formatRaw round-trips through parseAmount")
+        func formatRawRoundTrip() {
+            let vm = BudgetViewModel()
+            for amount in [0.5, 99.99, 1_500.0, 1_500_000.0] {
+                let parsed = BudgetViewModel.parseAmount(vm.formatRaw(amount))
+                #expect(parsed == amount)
+            }
+        }
+
         @Test("Duration singular day")
         func durationSingular() {
             let vm    = BudgetViewModel()
@@ -48,28 +76,86 @@ import SwiftData
         @Test("Duration specific dates")
         func durationSpecificDates() {
             let vm    = BudgetViewModel()
-            let start = Calendar.current.date(from: DateComponents(year: 2026, month: 6, day: 1))!
-            let end   = Calendar.current.date(from: DateComponents(year: 2026, month: 6, day: 8))!
-            let trip  = Trip(name: "T", destination: "D", startDate: start, endDate: end)
+            let trip  = Trip(name: "T", destination: "D",
+                             startDate: date(2026, 6, 1), endDate: date(2026, 6, 8))
             #expect(vm.durationText(trip: trip) == "7 days")
+        }
+
+        @Test("Duration ignores time of day")
+        func durationIgnoresTimeOfDay() {
+            let vm    = BudgetViewModel()
+            let start = date(2026, 6, 1, hour: 23)
+            let end   = date(2026, 6, 3, hour: 1)
+            #expect(vm.durationDays(from: start, to: end) == 2)
         }
     }
 
-@MainActor
-private func makeContext() throws -> ModelContext {
-    let schema = Schema([Trip.self, BudgetItem.self])
-    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-    let container = try ModelContainer(for: schema, configurations: [config])
-    return ModelContext(container)
+@Suite("Amount Parsing")
+struct AmountParsingTests {
+
+    @Test("Plain digits parse")
+    func plainDigits() {
+        #expect(BudgetViewModel.parseAmount("500000") == 500_000)
+    }
+
+    @Test("Comma thousands separators parse")
+    func commaGrouping() {
+        #expect(BudgetViewModel.parseAmount("1,500,000") == 1_500_000)
+        #expect(BudgetViewModel.parseAmount("1,500") == 1_500)
+    }
+
+    @Test("Dot thousands separators parse (Indonesian style)")
+    func dotGrouping() {
+        #expect(BudgetViewModel.parseAmount("1.500.000") == 1_500_000)
+        #expect(BudgetViewModel.parseAmount("1.500") == 1_500)
+    }
+
+    @Test("Dot decimal separator parses")
+    func dotDecimal() {
+        #expect(BudgetViewModel.parseAmount("99.99") == 99.99)
+        #expect(BudgetViewModel.parseAmount("0.5") == 0.5)
+    }
+
+    @Test("Comma decimal separator parses")
+    func commaDecimal() {
+        #expect(BudgetViewModel.parseAmount("99,99") == 99.99)
+        #expect(BudgetViewModel.parseAmount("0,5") == 0.5)
+    }
+
+    @Test("Mixed separators use rightmost as decimal")
+    func mixedSeparators() {
+        #expect(BudgetViewModel.parseAmount("1,500.50") == 1_500.5)
+        #expect(BudgetViewModel.parseAmount("1.500,50") == 1_500.5)
+    }
+
+    @Test("Surrounding whitespace is ignored")
+    func whitespace() {
+        #expect(BudgetViewModel.parseAmount("  500000  ") == 500_000)
+    }
+
+    @Test("Empty string fails")
+    func emptyFails() {
+        #expect(BudgetViewModel.parseAmount("") == nil)
+        #expect(BudgetViewModel.parseAmount("   ") == nil)
+    }
+
+    @Test("Non-numeric input fails")
+    func nonNumericFails() {
+        #expect(BudgetViewModel.parseAmount("abc") == nil)
+        #expect(BudgetViewModel.parseAmount("12a") == nil)
+    }
+}
+
+private func date(_ year: Int, _ month: Int, _ day: Int, hour: Int = 0) -> Date {
+    Calendar.current.date(from: DateComponents(year: year, month: month, day: day, hour: hour))!
 }
 
 private func makeTrip(name: String = "Test Trip",
               destination: String = "Bali",
               days: Int = 5,
               currency: String = "IDR") -> Trip {
-    let start = Date()
+    let start = date(2026, 6, 1)
     let end   = Calendar.current.date(byAdding: .day, value: days, to: start)!
     return Trip(name: name, destination: destination,
                 startDate: start, endDate: end, currency: currency)
 }
-

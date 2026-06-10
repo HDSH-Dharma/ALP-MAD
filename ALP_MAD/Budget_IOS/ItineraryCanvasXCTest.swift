@@ -1,246 +1,510 @@
 //
-//  ItineraryCanvasXCTest.swift
-//  ALP_MADTests
+// ItineraryCanvasXCTest.swift
+// ALP_MADTests
 //
-//  Created by student on 03/06/26.
+// Created by student on 03/06/26.
 //
 
 import XCTest
-import Foundation
 import SwiftData
+import CoreLocation
 @testable import ALP_MAD
 
 @MainActor
 final class ItineraryCanvasXCTest: XCTestCase {
     
     var container: ModelContainer!
+    var viewModel: ItineraryViewModel!
+    var testTrip: Trip!
     
     // MARK: - Setup & Teardown
     
     override func setUpWithError() throws {
         container = try ModelContainer(
-            for: Trip.self, Destination.self, BudgetItem.self, 
+            for: Trip.self, Destination.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
+        
+        let startDate = Date()
+        let endDate = Calendar.current.date(byAdding: .day, value: 3, to: startDate)!
+        testTrip = Trip(title: "Test Trip", startDate: startDate, endDate: endDate)
+        container.mainContext.insert(testTrip)
+        try container.mainContext.save()
+        
+        viewModel = ItineraryViewModel(modelContext: container.mainContext, trip: testTrip)
     }
     
     override func tearDownWithError() throws {
+        viewModel = nil
+        testTrip = nil
         container = nil
     }
     
-    // MARK: - Trip Model Tests
+    // MARK: - Destination Model Tests
     
-    func testTripInitialization() throws {
-        let startDate = Date()
-        let endDate = Calendar.current.date(byAdding: .day, value: 3, to: startDate)!
-        let trip = Trip(name: "Bali Trip", destination: "Bali", startDate: startDate, endDate: endDate)
+    func testDestinationInitialization() throws {
+        let dest = Destination(
+            name: "Tugu Pahlawan",
+            latitude: -7.2458,
+            longitude: 112.7378,
+            isLocalUMKM: false,
+            visitOrder: 0,
+            dayNumber: 1,
+            timeString: "09:00",
+            activityDesc: "Monumen bersejarah"
+        )
         
-        XCTAssertEqual(trip.name, "Bali Trip")
-        XCTAssertEqual(trip.destination, "Bali")
-        XCTAssertEqual(trip.startDate, startDate)
-        XCTAssertEqual(trip.endDate, endDate)
-        XCTAssertTrue(trip.destinations.isEmpty)
-        XCTAssertTrue(trip.budgetItems.isEmpty) // Optionally verify budgetItems
+        XCTAssertEqual(dest.name, "Tugu Pahlawan")
+        XCTAssertEqual(dest.latitude, -7.2458)
+        XCTAssertEqual(dest.longitude, 112.7378)
+        XCTAssertFalse(dest.isLocalUMKM)
+        XCTAssertEqual(dest.visitOrder, 0)
+        XCTAssertEqual(dest.dayNumber, 1)
+        XCTAssertEqual(dest.timeString, "09:00")
+        XCTAssertEqual(dest.activityDesc, "Monumen bersejarah")
     }
     
-    func testTripTotalDaysCalculation() throws {
-        let calendar = Calendar.current
-        let startDate = calendar.startOfDay(for: Date())
-        let endDate = calendar.date(byAdding: .day, value: 2, to: startDate)!
+    func testDestinationDefaultValues() throws {
+        let dest = Destination(
+            name: "Test Place",
+            latitude: 0.0,
+            longitude: 0.0
+        )
         
-        let trip = Trip(name: "Test Trip", destination: "Test City", startDate: startDate, endDate: endDate)
-        
-        XCTAssertEqual(trip.totalDays, 3)
+        XCTAssertFalse(dest.isLocalUMKM)
+        XCTAssertEqual(dest.visitOrder, 0)
+        XCTAssertEqual(dest.dayNumber, 1)
+        XCTAssertEqual(dest.timeString, "09:00")
+        XCTAssertEqual(dest.activityDesc, "")
     }
     
-    func testTripTotalDaysSameDate() throws {
-        let sameDay = Date()
-        let trip = Trip(name: "One Day Trip", destination: "Test City", startDate: sameDay, endDate: sameDay)
+    func testDestinationUMKMFlag() throws {
+        let dest = Destination(
+            name: "UMKM Place",
+            latitude: -7.0,
+            longitude: 112.0,
+            isLocalUMKM: true
+        )
         
-        XCTAssertEqual(trip.totalDays, 1)
+        XCTAssertTrue(dest.isLocalUMKM)
     }
     
-    func testTripDateRangeValidation() throws {
-        let startDate = Date()
-        let endDate = startDate.addingTimeInterval(86400 * 5)
+    func testDestinationCoordinate() throws {
+        let dest = Destination(
+            name: "Test",
+            latitude: -7.25,
+            longitude: 112.74
+        )
         
-        let trip = Trip(name: "Five Day Trip", destination: "Test City", startDate: startDate, endDate: endDate)
-        
-        XCTAssertEqual(trip.totalDays, 6)
-        XCTAssertTrue(trip.endDate > trip.startDate)
+        XCTAssertEqual(dest.coordinate.latitude, -7.25)
+        XCTAssertEqual(dest.coordinate.longitude, 112.74)
     }
     
-    // MARK: - SwiftData Persistence Tests
+    // MARK: - LandmarkPlace Model Tests
     
-    func testSaveAndFetchTrip() throws {
-        let context = container.mainContext
+    func testLandmarkPlaceInitialization() throws {
+        let place = LandmarkPlace(
+            name: "Test Place",
+            latitude: -7.25,
+            longitude: 112.74,
+            shortDesc: "Description",
+            isUMKM: false
+        )
         
-        let startDate = Date()
-        let endDate = Calendar.current.date(byAdding: .day, value: 2, to: startDate)!
-        let trip = Trip(name: "Surabaya Trip", destination: "Surabaya", startDate: startDate, endDate: endDate)
+        XCTAssertEqual(place.name, "Test Place")
+        XCTAssertEqual(place.latitude, -7.25)
+        XCTAssertEqual(place.longitude, 112.74)
+        XCTAssertEqual(place.shortDesc, "Description")
+        XCTAssertFalse(place.isUMKM)
+    }
+    
+    func testLandmarkPlaceCoordinate() throws {
+        let place = LandmarkPlace(
+            name: "Test",
+            latitude: -7.25,
+            longitude: 112.74,
+            shortDesc: "Desc",
+            isUMKM: false
+        )
         
-        context.insert(trip)
-        try context.save()
+        XCTAssertEqual(place.coordinate.latitude, -7.25)
+        XCTAssertEqual(place.coordinate.longitude, 112.74)
+    }
+    
+    func testLandmarkPlaceEquality() throws {
+        let id = UUID()
+        let place1 = LandmarkPlace(
+            id: id,
+            name: "Place 1",
+            latitude: -7.0,
+            longitude: 112.0,
+            shortDesc: "Desc 1",
+            isUMKM: false
+        )
+        let place2 = LandmarkPlace(
+            id: id,
+            name: "Place 2",
+            latitude: -8.0,
+            longitude: 113.0,
+            shortDesc: "Desc 2",
+            isUMKM: true
+        )
         
+        XCTAssertEqual(place1, place2) // Same ID
+    }
+    
+    func testLandmarkPlaceInequality() throws {
+        let place1 = LandmarkPlace(
+            name: "Place 1",
+            latitude: -7.0,
+            longitude: 112.0,
+            shortDesc: "Desc",
+            isUMKM: false
+        )
+        let place2 = LandmarkPlace(
+            name: "Place 2",
+            latitude: -7.0,
+            longitude: 112.0,
+            shortDesc: "Desc",
+            isUMKM: false
+        )
+        
+        XCTAssertNotEqual(place1, place2) // Different IDs
+    }
+    
+    func testLandmarkPlaceUMKM() throws {
+        let place = LandmarkPlace(
+            name: "UMKM Place",
+            latitude: -7.0,
+            longitude: 112.0,
+            shortDesc: "Desc",
+            isUMKM: true
+        )
+        
+        XCTAssertTrue(place.isUMKM)
+    }
+    
+    // MARK: - ItineraryViewModel Initialization Tests
+    
+    func testViewModelInitialization() throws {
+        XCTAssertEqual(viewModel.selectedDay, 1)
+        XCTAssertEqual(viewModel.searchText, "")
+        XCTAssertTrue(viewModel.searchResults.isEmpty)
+        XCTAssertFalse(viewModel.isSearching)
+        XCTAssertNil(viewModel.timeConflictError)
+        XCTAssertEqual(viewModel.currentZoomLevel, 0.05)
+    }
+    
+    func testViewModelSelectedTrip() throws {
+        XCTAssertEqual(viewModel.selectedTrip.id, testTrip.id)
+        XCTAssertEqual(viewModel.selectedTrip.title, "Test Trip")
+    }
+    
+    // MARK: - Filtered Destinations Tests
+    
+    func testFilteredDestinationsEmpty() throws {
+        XCTAssertTrue(viewModel.filteredDestinations.isEmpty)
+    }
+    
+    func testFilteredDestinationsByDay() throws {
+        let dest1 = Destination(name: "Day 1 Place", latitude: -7.0, longitude: 112.0, dayNumber: 1, timeString: "09:00")
+        let dest2 = Destination(name: "Day 2 Place", latitude: -7.0, longitude: 112.0, dayNumber: 2, timeString: "10:00")
+        
+        testTrip.destinations.append(dest1)
+        testTrip.destinations.append(dest2)
+        
+        viewModel.selectedDay = 1
+        XCTAssertEqual(viewModel.filteredDestinations.count, 1)
+        XCTAssertEqual(viewModel.filteredDestinations.first?.name, "Day 1 Place")
+        
+        viewModel.selectedDay = 2
+        XCTAssertEqual(viewModel.filteredDestinations.count, 1)
+        XCTAssertEqual(viewModel.filteredDestinations.first?.name, "Day 2 Place")
+    }
+    
+    func testFilteredDestinationsSortedByTime() throws {
+        let dest1 = Destination(name: "Morning", latitude: -7.0, longitude: 112.0, dayNumber: 1, timeString: "09:00")
+        let dest2 = Destination(name: "Afternoon", latitude: -7.0, longitude: 112.0, dayNumber: 1, timeString: "14:00")
+        let dest3 = Destination(name: "Noon", latitude: -7.0, longitude: 112.0, dayNumber: 1, timeString: "12:00")
+        
+        testTrip.destinations.append(dest1)
+        testTrip.destinations.append(dest2)
+        testTrip.destinations.append(dest3)
+        
+        let filtered = viewModel.filteredDestinations
+        XCTAssertEqual(filtered.count, 3)
+        XCTAssertEqual(filtered[0].timeString, "09:00")
+        XCTAssertEqual(filtered[1].timeString, "12:00")
+        XCTAssertEqual(filtered[2].timeString, "14:00")
+    }
+    
+    func testFilteredDestinationsMultipleDays() throws {
+        let dest1 = Destination(name: "Day 1 Morning", latitude: -7.0, longitude: 112.0, dayNumber: 1, timeString: "09:00")
+        let dest2 = Destination(name: "Day 1 Afternoon", latitude: -7.0, longitude: 112.0, dayNumber: 1, timeString: "14:00")
+        let dest3 = Destination(name: "Day 2 Morning", latitude: -7.0, longitude: 112.0, dayNumber: 2, timeString: "09:00")
+        
+        testTrip.destinations.append(dest1)
+        testTrip.destinations.append(dest2)
+        testTrip.destinations.append(dest3)
+        
+        viewModel.selectedDay = 1
+        XCTAssertEqual(viewModel.filteredDestinations.count, 2)
+        
+        viewModel.selectedDay = 2
+        XCTAssertEqual(viewModel.filteredDestinations.count, 1)
+    }
+    
+    // MARK: - Add Destination Tests
+    
+    func testAddDestinationWithTimeSuccess() throws {
+        let place = LandmarkPlace(
+            name: "New Place",
+            latitude: -7.25,
+            longitude: 112.74,
+            shortDesc: "Description",
+            isUMKM: false
+        )
+        
+        let result = viewModel.addDestinationWithTime(place: place, timeString: "10:00")
+        
+        XCTAssertTrue(result.success)
+        XCTAssertNil(result.message)
+        XCTAssertEqual(viewModel.filteredDestinations.count, 1)
+        XCTAssertEqual(viewModel.filteredDestinations.first?.name, "New Place")
+        XCTAssertEqual(viewModel.filteredDestinations.first?.timeString, "10:00")
+    }
+    
+    func testAddDestinationWithTimeConflict() throws {
+        let place1 = LandmarkPlace(name: "Place 1", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        let place2 = LandmarkPlace(name: "Place 2", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        
+        let result1 = viewModel.addDestinationWithTime(place: place1, timeString: "10:00")
+        XCTAssertTrue(result1.success)
+        
+        let result2 = viewModel.addDestinationWithTime(place: place2, timeString: "10:00")
+        XCTAssertFalse(result2.success)
+        XCTAssertNotNil(result2.message)
+        XCTAssertNotNil(viewModel.timeConflictError)
+    }
+    
+    func testAddDestinationSetsCorrectDayNumber() throws {
+        viewModel.selectedDay = 2
+        let place = LandmarkPlace(name: "Place", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        
+        viewModel.addDestinationWithTime(place: place, timeString: "10:00")
+        
+        XCTAssertEqual(viewModel.filteredDestinations.first?.dayNumber, 2)
+    }
+    
+    func testAddDestinationSetsCoordinates() throws {
+        let place = LandmarkPlace(
+            name: "Place",
+            latitude: -7.25,
+            longitude: 112.74,
+            shortDesc: "Desc",
+            isUMKM: false
+        )
+        
+        viewModel.addDestinationWithTime(place: place, timeString: "10:00")
+        
+        XCTAssertEqual(viewModel.filteredDestinations.first?.latitude, -7.25)
+        XCTAssertEqual(viewModel.filteredDestinations.first?.longitude, 112.74)
+    }
+    
+    func testAddDestinationSetsUMKMFlag() throws {
+        let place = LandmarkPlace(
+            name: "UMKM",
+            latitude: -7.0,
+            longitude: 112.0,
+            shortDesc: "Desc",
+            isUMKM: true
+        )
+        
+        viewModel.addDestinationWithTime(place: place, timeString: "10:00")
+        
+        XCTAssertTrue(viewModel.filteredDestinations.first?.isLocalUMKM ?? false)
+    }
+    
+    // MARK: - Update Destination Time Tests
+    
+    func testUpdateDestinationTimeSuccess() throws {
+        let place = LandmarkPlace(name: "Place", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        viewModel.addDestinationWithTime(place: place, timeString: "10:00")
+        
+        let dest = viewModel.filteredDestinations.first!
+        let result = viewModel.updateDestinationTime(destination: dest, newTimeString: "11:00")
+        
+        XCTAssertTrue(result.success)
+        XCTAssertEqual(dest.timeString, "11:00")
+    }
+    
+    func testUpdateDestinationTimeConflict() throws {
+        let place1 = LandmarkPlace(name: "Place 1", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        let place2 = LandmarkPlace(name: "Place 2", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        
+        viewModel.addDestinationWithTime(place: place1, timeString: "10:00")
+        viewModel.addDestinationWithTime(place: place2, timeString: "11:00")
+        
+        let dest2 = viewModel.filteredDestinations.first { $0.name == "Place 2" }!
+        let result = viewModel.updateDestinationTime(destination: dest2, newTimeString: "10:00")
+        
+        XCTAssertFalse(result.success)
+        XCTAssertNotNil(viewModel.timeConflictError)
+    }
+    
+    func testUpdateDestinationTimeSameTimeAllowed() throws {
+        let place = LandmarkPlace(name: "Place", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        viewModel.addDestinationWithTime(place: place, timeString: "10:00")
+        
+        let dest = viewModel.filteredDestinations.first!
+        let result = viewModel.updateDestinationTime(destination: dest, newTimeString: "10:00")
+        
+        XCTAssertTrue(result.success) // Should allow updating to same time
+    }
+    
+    // MARK: - Visit Order Tests
+    
+    func testRecalculateVisitOrder() throws {
+        let place1 = LandmarkPlace(name: "First", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        let place2 = LandmarkPlace(name: "Second", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        let place3 = LandmarkPlace(name: "Third", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        
+        viewModel.addDestinationWithTime(place: place1, timeString: "14:00")
+        viewModel.addDestinationWithTime(place: place2, timeString: "09:00")
+        viewModel.addDestinationWithTime(place: place3, timeString: "12:00")
+        
+        let filtered = viewModel.filteredDestinations
+        XCTAssertEqual(filtered[0].visitOrder, 0) // 09:00
+        XCTAssertEqual(filtered[1].visitOrder, 1) // 12:00
+        XCTAssertEqual(filtered[2].visitOrder, 2) // 14:00
+    }
+    
+    func testRecalculateVisitOrderAfterUpdate() throws {
+        let place1 = LandmarkPlace(name: "First", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        let place2 = LandmarkPlace(name: "Second", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        
+        viewModel.addDestinationWithTime(place: place1, timeString: "09:00")
+        viewModel.addDestinationWithTime(place: place2, timeString: "10:00")
+        
+        let dest1 = viewModel.filteredDestinations.first { $0.name == "First" }!
+        viewModel.updateDestinationTime(destination: dest1, newTimeString: "11:00")
+        
+        let filtered = viewModel.filteredDestinations
+        XCTAssertEqual(filtered[0].name, "Second") // Now first
+        XCTAssertEqual(filtered[1].name, "First") // Now second
+        XCTAssertEqual(filtered[0].visitOrder, 0)
+        XCTAssertEqual(filtered[1].visitOrder, 1)
+    }
+    
+    // MARK: - Delete Destination Tests
+    
+    func testDeleteDestinationById() throws {
+        let place = LandmarkPlace(name: "To Delete", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        viewModel.addDestinationWithTime(place: place, timeString: "10:00")
+        
+        let dest = viewModel.filteredDestinations.first!
+        viewModel.deleteDestinationById(dest.id)
+        
+        XCTAssertTrue(viewModel.filteredDestinations.isEmpty)
+    }
+    
+    func testDeleteDestinationRecalculatesOrder() throws {
+        let place1 = LandmarkPlace(name: "First", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        let place2 = LandmarkPlace(name: "Second", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        let place3 = LandmarkPlace(name: "Third", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        
+        viewModel.addDestinationWithTime(place: place1, timeString: "09:00")
+        viewModel.addDestinationWithTime(place: place2, timeString: "10:00")
+        viewModel.addDestinationWithTime(place: place3, timeString: "11:00")
+        
+        let dest2 = viewModel.filteredDestinations.first { $0.name == "Second" }!
+        viewModel.deleteDestinationById(dest2.id)
+        
+        let filtered = viewModel.filteredDestinations
+        XCTAssertEqual(filtered.count, 2)
+        XCTAssertEqual(filtered[0].visitOrder, 0)
+        XCTAssertEqual(filtered[1].visitOrder, 1)
+    }
+    
+    func testDeleteDestinationAtOffsets() throws {
+        let place1 = LandmarkPlace(name: "First", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        let place2 = LandmarkPlace(name: "Second", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        
+        viewModel.addDestinationWithTime(place: place1, timeString: "09:00")
+        viewModel.addDestinationWithTime(place: place2, timeString: "10:00")
+        
+        viewModel.deleteDestination(at: IndexSet(integer: 0))
+        
+        XCTAssertEqual(viewModel.filteredDestinations.count, 1)
+        XCTAssertEqual(viewModel.filteredDestinations.first?.name, "Second")
+    }
+    
+    // MARK: - Search Tests
+    
+    func testClearSearch() throws {
+        viewModel.searchText = "test"
+        viewModel.searchResults = [LandmarkPlace(name: "Result", latitude: 0, longitude: 0, shortDesc: "Desc", isUMKM: false)]
+        viewModel.timeConflictError = "Error"
+        
+        viewModel.clearSearch()
+        
+        XCTAssertEqual(viewModel.searchText, "")
+        XCTAssertTrue(viewModel.searchResults.isEmpty)
+        XCTAssertNil(viewModel.timeConflictError)
+    }
+    
+    func testSearchTextProperty() throws {
+        viewModel.searchText = "Hotel"
+        XCTAssertEqual(viewModel.searchText, "Hotel")
+    }
+    
+    // MARK: - Zoom Tests
+    
+    func testCalculateZoomIn() throws {
+        let result = viewModel.calculateZoomIn(currentDelta: 0.1)
+        XCTAssertEqual(result, 0.05, accuracy: 0.0001)
+    }
+    
+    func testCalculateZoomInMinimum() throws {
+        let result = viewModel.calculateZoomIn(currentDelta: 0.0001)
+        XCTAssertEqual(result, 0.0001, accuracy: 0.00001)
+    }
+    
+    func testCalculateZoomOut() throws {
+        let result = viewModel.calculateZoomOut(currentDelta: 0.1)
+        XCTAssertEqual(result, 0.2, accuracy: 0.0001)
+    }
+    
+    func testCalculateZoomOutMaximum() throws {
+        let result = viewModel.calculateZoomOut(currentDelta: 30.0)
+        XCTAssertEqual(result, 50.0, accuracy: 0.0001)
+    }
+    
+    // MARK: - Discoverable Places Tests
+    
+    func testDiscoverablePlacesNotEmpty() throws {
+        XCTAssertFalse(viewModel.discoverablePlaces.isEmpty)
+        XCTAssertEqual(viewModel.discoverablePlaces.count, 3)
+    }
+    
+    func testDiscoverablePlacesContainsUMKM() throws {
+        let umkmPlaces = viewModel.discoverablePlaces.filter { $0.isUMKM }
+        XCTAssertFalse(umkmPlaces.isEmpty)
+    }
+    
+    // MARK: - Save Context Tests
+    
+    func testSaveContext() throws {
+        let place = LandmarkPlace(name: "Place", latitude: -7.0, longitude: 112.0, shortDesc: "Desc", isUMKM: false)
+        viewModel.addDestinationWithTime(place: place, timeString: "10:00")
+        
+        // Should not throw
+        viewModel.saveContext()
+        
+        // Verify data was saved
         let descriptor = FetchDescriptor<Trip>()
-        let fetchedTrips = try context.fetch(descriptor)
-        
-        XCTAssertEqual(fetchedTrips.count, 1)
-        XCTAssertEqual(fetchedTrips.first?.name, "Surabaya Trip")
-    }
-    
-    func testUpdateTripProperties() throws {
-        let context = container.mainContext
-        
-        let trip = Trip(name: "Original Title", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        context.insert(trip)
-        try context.save()
-        
-        trip.name = "Updated Title"
-        try context.save()
-        
-        let descriptor = FetchDescriptor<Trip>()
-        let fetchedTrip = try context.fetch(descriptor).first
-        
-        XCTAssertEqual(fetchedTrip?.name, "Updated Title")
-    }
-    
-    func testMultipleTrips() throws {
-        let context = container.mainContext
-        
-        let trip1 = Trip(name: "Trip 1", destination: "City A", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        let trip2 = Trip(name: "Trip 2", destination: "City B", startDate: Date(), endDate: Date().addingTimeInterval(86400 * 2))
-        let trip3 = Trip(name: "Trip 3", destination: "City C", startDate: Date(), endDate: Date().addingTimeInterval(86400 * 3))
-        
-        context.insert(trip1)
-        context.insert(trip2)
-        context.insert(trip3)
-        try context.save()
-        
-        let descriptor = FetchDescriptor<Trip>()
-        let trips = try context.fetch(descriptor)
-        
-        XCTAssertEqual(trips.count, 3)
-        
-        let names = trips.map { $0.name }.sorted()
-        XCTAssertEqual(names, ["Trip 1", "Trip 2", "Trip 3"])
-    }
-    
-    func testDeleteTrip() throws {
-        let context = container.mainContext
-        
-        let trip = Trip(name: "To Delete", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        context.insert(trip)
-        try context.save()
-        
-        context.delete(trip)
-        try context.save()
-        
-        let descriptor = FetchDescriptor<Trip>()
-        let trips = try context.fetch(descriptor)
-        
-        XCTAssertTrue(trips.isEmpty)
-    }
-    
-    func testFetchTripWithSort() throws {
-        let context = container.mainContext
-        
-        let tripC = Trip(name: "C Trip", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        let tripA = Trip(name: "A Trip", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        let tripB = Trip(name: "B Trip", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        
-        context.insert(tripC)
-        context.insert(tripA)
-        context.insert(tripB)
-        try context.save()
-        
-        var descriptor = FetchDescriptor<Trip>(sortBy: [SortDescriptor(\.name)])
-        let sortedTrips = try context.fetch(descriptor)
-        
-        XCTAssertEqual(sortedTrips.count, 3)
-        XCTAssertEqual(sortedTrips[0].name, "A Trip")
-        XCTAssertEqual(sortedTrips[1].name, "B Trip")
-        XCTAssertEqual(sortedTrips[2].name, "C Trip")
-    }
-    
-    func testTripEmptyDestinations() throws {
-        let context = container.mainContext
-        
-        let trip = Trip(name: "Empty Trip", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        context.insert(trip)
-        try context.save()
-        
-        XCTAssertTrue(trip.destinations.isEmpty)
-    }
-    
-    func testUpdateTripStartDate() throws {
-        let context = container.mainContext
-        
-        let originalDate = Date()
-        let trip = Trip(name: "Date Update Trip", destination: "Test City", startDate: originalDate, endDate: originalDate.addingTimeInterval(86400))
-        context.insert(trip)
-        try context.save()
-        
-        let newDate = originalDate.addingTimeInterval(86400 * 2)
-        trip.startDate = newDate
-        try context.save()
-        
-        let descriptor = FetchDescriptor<Trip>()
-        let fetched = try context.fetch(descriptor).first
-        
-        XCTAssertEqual(fetched?.startDate, newDate)
-    }
-    
-    func testFetchTripWithPredicate() throws {
-        let context = container.mainContext
-        
-        let trip1 = Trip(name: "Bali Trip", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        let trip2 = Trip(name: "Java Trip", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        let trip3 = Trip(name: "Bali Holiday", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        
-        context.insert(trip1)
-        context.insert(trip2)
-        context.insert(trip3)
-        try context.save()
-        
-        let predicate = #Predicate<Trip> { $0.name.contains("Bali") }
-        var descriptor = FetchDescriptor<Trip>(predicate: predicate)
-        let results = try context.fetch(descriptor)
-        
-        XCTAssertEqual(results.count, 2)
-    }
-    
-    func testTripTotalDaysTenDayTrip() throws {
-        let startDate = Date()
-        let endDate = Calendar.current.date(byAdding: .day, value: 9, to: startDate)!
-        let trip = Trip(name: "Ten Day Trip", destination: "Test City", startDate: startDate, endDate: endDate)
-        
-        XCTAssertEqual(trip.totalDays, 10)
-    }
-    
-    func testMultipleSaveAndFetchCycle() throws {
-        let context = container.mainContext
-        
-        // Cycle 1: Insert
-        let trip1 = Trip(name: "First", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        context.insert(trip1)
-        try context.save()
-        
-        var descriptor = FetchDescriptor<Trip>()
-        XCTAssertEqual(try context.fetch(descriptor).count, 1)
-        
-        // Cycle 2: Insert again
-        let trip2 = Trip(name: "Second", destination: "Test City", startDate: Date(), endDate: Date().addingTimeInterval(86400))
-        context.insert(trip2)
-        try context.save()
-        
-        XCTAssertEqual(try context.fetch(descriptor).count, 2)
-        
-        // Cycle 3: Delete one
-        context.delete(trip1)
-        try context.save()
-        
-        XCTAssertEqual(try context.fetch(descriptor).count, 1)
-        XCTAssertEqual(try context.fetch(descriptor).first?.name, "Second")
+        let fetchedTrip = try container.mainContext.fetch(descriptor).first
+        XCTAssertNotNil(fetchedTrip)
+        XCTAssertEqual(fetchedTrip?.destinations.count, 1)
     }
 }

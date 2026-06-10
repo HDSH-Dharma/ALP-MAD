@@ -21,7 +21,10 @@ final class Trip: Hashable {
  
     @Relationship(deleteRule: .cascade)
     var destinations: [Destination]
-    
+
+    @Relationship(deleteRule: .cascade, inverse: \JournalEntry.trip)
+    var journalEntries: [JournalEntry]
+
     init(
         name: String,
         destination: String,
@@ -35,10 +38,18 @@ final class Trip: Hashable {
         self.startDate    = startDate
         self.endDate      = endDate
         self.currency     = currency
-        self.budgetItems  = []
-        self.destinations = []
+        self.budgetItems    = []
+        self.destinations   = []
+        self.journalEntries = []
     }
- 
+
+    /// Convenience init for the itinerary flow, which only supplies a title.
+    /// Bridges to the unified name-based model; destination/currency take
+    /// defaults and can be filled in later from the budget side.
+    convenience init(title: String, startDate: Date, endDate: Date) {
+        self.init(name: title, destination: "", startDate: startDate, endDate: endDate)
+    }
+
     static func == (lhs: Trip, rhs: Trip) -> Bool {
         lhs.persistentModelID == rhs.persistentModelID
     }
@@ -49,6 +60,15 @@ final class Trip: Hashable {
 
 }
 extension Trip {
+    /// The itinerary feature refers to the trip headline as `title`, while the
+    /// budget feature uses `name`. They are the same underlying value — this
+    /// bridges both vocabularies onto the single stored `name` property so
+    /// neither feature's code needs to change.
+    var title: String {
+        get { name }
+        set { name = newValue }
+    }
+
     var totalDays: Int {
         let calendar = Calendar.current
         let start = calendar.startOfDay(for: startDate)

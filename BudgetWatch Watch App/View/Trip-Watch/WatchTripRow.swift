@@ -8,12 +8,10 @@
 import SwiftUI
 
 struct WatchTripRow: View {
+    @Environment(BudgetViewModel.self) private var vm
+
     let trip: WatchTripPayload
- 
-    private var calculatedTotal: Double {
-        trip.items.reduce(0) { $0 + $1.amount }
-    }
-    
+
     var body: some View {
         HStack(spacing: 8) {
             VStack(alignment: .leading, spacing: 2) {
@@ -21,29 +19,20 @@ struct WatchTripRow: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.primary)
                     .lineLimit(1)
-                
+
                 Text(trip.name)
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
                     .lineLimit(1)
             }
-            
+
             Spacer()
-            
-            Text(formatCurrency(calculatedTotal, currency: trip.currency))
+
+            Text(vm.formatCurrency(vm.totalBudget(for: trip), currency: trip.currency))
                 .font(.system(size: 13, weight: .bold))
                 .foregroundStyle(.blue)
                 .lineLimit(1)
         }
         .padding(.vertical, 2)
-    }
-    
-    private func formatCurrency(_ amount: Double, currency: String) -> String {
-        let fmt = NumberFormatter()
-        fmt.numberStyle           = .currency
-        fmt.currencyCode          = currency
-        fmt.maximumFractionDigits = currency == "IDR" ? 0 : 2
-        fmt.maximumIntegerDigits  = 10
-        return fmt.string(from: NSNumber(value: amount)) ?? "-"
     }
 }

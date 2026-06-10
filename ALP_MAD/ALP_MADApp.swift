@@ -11,7 +11,7 @@ import SwiftData
 @main
 struct ALP_MADApp: App {
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([Trip.self, BudgetItem.self, Destination.self])
+        let schema = Schema([Trip.self, BudgetItem.self, Destination.self, JournalEntry.self])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {
             return try ModelContainer(for: schema, configurations: [config])
@@ -26,6 +26,10 @@ struct ALP_MADApp: App {
         WindowGroup {
             TripListView()
                 .environment(vm)
+                .task {
+                    // Ask once and schedule the daily journal reminder.
+                    await JournalReminder().scheduleDailyReminder()
+                }
         }
         .modelContainer(sharedModelContainer)
     }

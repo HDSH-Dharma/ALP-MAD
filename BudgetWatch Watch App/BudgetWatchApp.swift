@@ -6,20 +6,11 @@
 //
 
 import SwiftUI
-import SwiftData
 
 @main
 struct BudgetWatch_Watch_AppApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([Trip.self, BudgetItem.self])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        do {
-            return try ModelContainer(for: schema, configurations: [config])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
+    // The watch UI is fed by WatchConnectivity payloads, not a local
+    // SwiftData store, so no ModelContainer is created here.
     @State private var vm = BudgetViewModel()
 
     var body: some Scene {
@@ -27,6 +18,5 @@ struct BudgetWatch_Watch_AppApp: App {
             WatchTripListView()
                 .environment(vm)
         }
-        .modelContainer(sharedModelContainer)
     }
 }

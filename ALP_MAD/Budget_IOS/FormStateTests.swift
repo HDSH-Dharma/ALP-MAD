@@ -45,6 +45,28 @@ import SwiftData
             #expect(vm.itemNote     == "SQ")
         }
 
+        @Test("populateItemForm produces a valid, parseable amount")
+        func populateRoundTripWholeAmount() {
+            let vm   = BudgetViewModel()
+            let item = BudgetItem(title: "Hotel", amount: 1_500_000, category: .accommodation)
+            vm.populateItemForm(from: item)
+
+            // Regression: grouping separators from formatting must not break
+            // validation when the user immediately saves the edit form.
+            #expect(vm.isItemFormValid == true)
+            #expect(BudgetViewModel.parseAmount(vm.itemAmount) == 1_500_000)
+        }
+
+        @Test("populateItemForm keeps decimal amounts intact")
+        func populateRoundTripDecimalAmount() {
+            let vm   = BudgetViewModel()
+            let item = BudgetItem(title: "Coffee", amount: 4.5, category: .food)
+            vm.populateItemForm(from: item)
+
+            // Regression: 4.5 used to be rounded to "5" when refilling the form.
+            #expect(BudgetViewModel.parseAmount(vm.itemAmount) == 4.5)
+        }
+
         @Test("clearTripForm resets all fields")
         func clearTripForm() {
             let vm = BudgetViewModel()
@@ -59,22 +81,3 @@ import SwiftData
             #expect(vm.showAddTrip     == false)
         }
     }
-
-@MainActor
-private func makeContext() throws -> ModelContext {
-    let schema = Schema([Trip.self, BudgetItem.self])
-    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-    let container = try ModelContainer(for: schema, configurations: [config])
-    return ModelContext(container)
-}
-
-private func makeTrip(name: String = "Test Trip",
-              destination: String = "Bali",
-              days: Int = 5,
-              currency: String = "IDR") -> Trip {
-    let start = Date()
-    let end   = Calendar.current.date(byAdding: .day, value: days, to: start)!
-    return Trip(name: name, destination: destination,
-                startDate: start, endDate: end, currency: currency)
-}
-
