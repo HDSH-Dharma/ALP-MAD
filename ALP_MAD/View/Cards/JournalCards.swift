@@ -42,3 +42,4 @@ struct JournalEntryRow: View {
         .padding(.vertical, 6)
     }
 }
+
