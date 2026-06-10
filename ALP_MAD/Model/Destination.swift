@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import MapKit
 
 @Model
 final class Destination {
@@ -30,5 +31,11 @@ final class Destination {
         self.dayNumber = dayNumber
         self.timeString = timeString
         self.activityDesc = activityDesc
+    }
+}
+
+extension Destination {
+    var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
 }
