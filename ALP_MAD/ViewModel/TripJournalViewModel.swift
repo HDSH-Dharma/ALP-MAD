@@ -1,5 +1,5 @@
 //
-//  TripJournalVM.swift
+//  TripTripJournalViewModel.swift
 //  ALP_MAD
 //
 //  Created by student on 28/05/26.
@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Observable
-final class JournalViewModel {
+final class TripJournalViewModel {
 
     // MARK: - Form state
     var showAddEntry   = false

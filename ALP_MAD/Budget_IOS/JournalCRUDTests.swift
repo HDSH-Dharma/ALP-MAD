@@ -16,28 +16,28 @@ struct JournalValidationTests {
 
     @Test("Non-empty title is valid")
     func validTitle() {
-        let vm = JournalViewModel()
+        let vm = TripJournalViewModel()
         vm.entryTitle = "Day 1"
         #expect(vm.isEntryValid == true)
     }
 
     @Test("Empty title is invalid")
     func emptyTitle() {
-        let vm = JournalViewModel()
+        let vm = TripJournalViewModel()
         vm.entryTitle = ""
         #expect(vm.isEntryValid == false)
     }
 
     @Test("Whitespace-only title is invalid")
     func whitespaceTitle() {
-        let vm = JournalViewModel()
+        let vm = TripJournalViewModel()
         vm.entryTitle = "   "
         #expect(vm.isEntryValid == false)
     }
 
     @Test("clearForm resets all fields")
     func clearForm() {
-        let vm = JournalViewModel()
+        let vm = TripJournalViewModel()
         vm.entryTitle     = "T"
         vm.entryNote      = "N"
         vm.entryPhotoData = Data([0x01])
@@ -62,7 +62,7 @@ struct JournalCRUDTests {
         let trip = makeTrip()
         context.insert(trip)
 
-        let vm = JournalViewModel()
+        let vm = TripJournalViewModel()
         vm.entryTitle = "Sunset at Kuta"
         vm.entryNote  = "Beautiful evening"
         vm.addEntry(to: trip, context: context)
@@ -78,7 +78,7 @@ struct JournalCRUDTests {
         let trip = makeTrip()
         context.insert(trip)
 
-        let vm = JournalViewModel()
+        let vm = TripJournalViewModel()
         vm.entryTitle = "  Hello  "
         vm.entryNote  = "  world  "
         vm.addEntry(to: trip, context: context)
@@ -93,7 +93,7 @@ struct JournalCRUDTests {
         let trip = makeTrip()
         context.insert(trip)
 
-        let vm = JournalViewModel()
+        let vm = TripJournalViewModel()
         vm.entryTitle     = "With photo"
         vm.entryPhotoData = Data([0x10, 0x20, 0x30])
         vm.addEntry(to: trip, context: context)
@@ -107,7 +107,7 @@ struct JournalCRUDTests {
         let trip = makeTrip()
         context.insert(trip)
 
-        let vm = JournalViewModel()
+        let vm = TripJournalViewModel()
         vm.entryTitle = "   "
         vm.entryNote  = "orphan note"
         vm.addEntry(to: trip, context: context)
@@ -121,7 +121,7 @@ struct JournalCRUDTests {
         let trip = makeTrip()
         context.insert(trip)
 
-        let vm = JournalViewModel()
+        let vm = TripJournalViewModel()
         vm.entryTitle   = "Entry"
         vm.showAddEntry = true
         vm.addEntry(to: trip, context: context)
@@ -141,7 +141,7 @@ struct JournalCRUDTests {
         context.insert(entry)
         try context.save()
 
-        let vm = JournalViewModel()
+        let vm = TripJournalViewModel()
         vm.deleteEntry(entry, from: trip, context: context)
 
         #expect(trip.journalEntries.isEmpty)
@@ -159,7 +159,7 @@ struct JournalCRUDTests {
         context.insert(trip)
         try context.save()
 
-        let vm = JournalViewModel()
+        let vm = TripJournalViewModel()
         #expect(vm.entries(in: trip).map(\.title) == ["Newer", "Older"])
     }
 
@@ -168,7 +168,7 @@ struct JournalCRUDTests {
         let context = try makeContext()
         let trip = makeTrip()
         context.insert(trip)
-        let vm = JournalViewModel()
+        let vm = TripJournalViewModel()
         #expect(vm.entries(in: trip).isEmpty)
     }
 }

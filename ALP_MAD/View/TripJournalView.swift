@@ -13,7 +13,7 @@ struct TripJournalView: View {
     @Environment(\.modelContext) private var context
     let trip: Trip
 
-    @State private var vm = JournalViewModel()
+    @State private var vm = TripJournalViewModel()
 
     var body: some View {
         @Bindable var vm = vm
@@ -59,7 +59,7 @@ struct TripJournalView: View {
 
 struct AddJournalEntrySheet: View {
     @Environment(\.dismiss) private var dismiss
-    @Bindable var vm: JournalViewModel
+    @Bindable var vm: TripJournalViewModel
     let onSave: () -> Void
 
     @State private var pickerItem: PhotosPickerItem?

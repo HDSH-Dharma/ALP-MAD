@@ -9,7 +9,7 @@ import SwiftUI
 
 struct JournalEntryRow: View {
     let entry: JournalEntry
-    let vm: JournalViewModel
+    let vm: TripJournalViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
