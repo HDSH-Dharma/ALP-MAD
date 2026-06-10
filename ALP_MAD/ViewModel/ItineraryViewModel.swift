@@ -195,10 +195,10 @@ final class ItineraryViewModel: ObservableObject {
     
     // MARK: - Zoom Logic
     func calculateZoomIn(currentDelta: Double) -> Double {
-        return max(currentDelta * 0.5, 0.001)
+        return max(currentDelta * 0.5, 0.0001)
     }
     
     func calculateZoomOut(currentDelta: Double) -> Double {
-        return min(currentDelta * 2.0, 5.0)
+        return min(currentDelta * 2.0, 50.0)
     }
 }
