@@ -115,6 +115,10 @@
 				View/Trip/TripDetailTabView.swift,
 				View/Trip/TripListView.swift,
 				ViewModel/ItineraryViewModel.swift,
+				ViewModel/TripJournalVM.swift,
+				Model/TripJournal.swift,
+				View/Cards/JournalCards.swift,
+				View/TripJournalView.swift,
 			);
 			target = ABE1C1B22FD0090900EB6A9A /* BudgetWatch Watch App */;
 		};
@@ -160,6 +164,10 @@
 				View/Trip/TripListView.swift,
 				ViewModel/BudgetViewModel.swift,
 				ViewModel/ItineraryViewModel.swift,
+				ViewModel/TripJournalVM.swift,
+				Model/TripJournal.swift,
+				View/Cards/JournalCards.swift,
+				View/TripJournalView.swift,
 			);
 			target = ABE1C1BE2FD0090A00EB6A9A /* BudgetWatch Watch AppTests */;
 		};
@@ -221,6 +229,10 @@
 				View/Trip/TripListView.swift,
 				ViewModel/BudgetViewModel.swift,
 				ViewModel/ItineraryViewModel.swift,
+				ViewModel/TripJournalVM.swift,
+				Model/TripJournal.swift,
+				View/Cards/JournalCards.swift,
+				View/TripJournalView.swift,
 			);
 			target = ABE1C29F2FD0187B00EB6A9A /* Budget_IOS */;
 		};

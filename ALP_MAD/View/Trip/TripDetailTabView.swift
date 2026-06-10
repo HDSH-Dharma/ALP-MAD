@@ -31,6 +31,13 @@ struct TripDetailTabView: View {
                     Label("Budget", systemImage: "creditcard.fill")
                 }
                 .tag(1)
+
+            // TAB 3: Trip Journal
+            TripJournalView()
+                .tabItem {
+                    Label("Journal", systemImage: "book.closed.fill")
+                }
+                .tag(2)
         }
         .accentColor(.blue)
         .navigationTitle(trip.name)
