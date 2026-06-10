@@ -62,8 +62,6 @@ struct TripDaysDetailView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle("Daftar Hari")
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
