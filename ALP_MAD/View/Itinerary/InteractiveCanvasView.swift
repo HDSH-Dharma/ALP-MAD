@@ -21,6 +21,10 @@ struct InteractiveCanvasView: View {
     ))
     // Live map center, kept in sync via onMapCameraChange — used for manual pin-drop.
     @State private var currentCenter = CLLocationCoordinate2D(latitude: -7.2504, longitude: 112.7424)
+    @State private var currentRegion = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: -7.2504, longitude: 112.7424),
+        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+    )
     @State private var pinpointMode = false
     
     // MARK: - Modal States
@@ -90,6 +94,7 @@ struct InteractiveCanvasView: View {
             .onMapCameraChange { context in
                 viewModel.currentZoomLevel = context.region.span.latitudeDelta
                 currentCenter = context.region.center
+                currentRegion = context.region
             }
             .onTapGesture {
                 if selectedPlace != nil {
@@ -205,7 +210,6 @@ struct InteractiveCanvasView: View {
         .sheet(item: $placeToAdd) { place in
             AddPlaceSheet(
                 place: place,
-                viewModel: viewModel,
                 onAdd: { timeString in
                     let result = viewModel.addDestinationWithTime(place: place, timeString: timeString)
                     if result.success {
@@ -248,28 +252,26 @@ struct InteractiveCanvasView: View {
     
     // MARK: - Zoom Functions
     private func zoomIn() {
-        if let currentRegion = cameraPos.region {
-            let newDelta = viewModel.calculateZoomIn(currentDelta: currentRegion.span.latitudeDelta)
-            
-            withAnimation(.easeInOut(duration: 0.3)) {
-                cameraPos = .region(MKCoordinateRegion(
-                    center: currentRegion.center,
-                    span: MKCoordinateSpan(latitudeDelta: newDelta, longitudeDelta: newDelta)
-                ))
-            }
+        let newDelta = viewModel.calculateZoomIn(currentDelta: currentRegion.span.latitudeDelta)
+        let newRegion = MKCoordinateRegion(
+            center: currentRegion.center,
+            span: MKCoordinateSpan(latitudeDelta: newDelta, longitudeDelta: newDelta)
+        )
+        currentRegion = newRegion
+        withAnimation(.easeInOut(duration: 0.3)) {
+            cameraPos = .region(newRegion)
         }
-    }
+}
     
     private func zoomOut() {
-        if let currentRegion = cameraPos.region {
-            let newDelta = viewModel.calculateZoomOut(currentDelta: currentRegion.span.latitudeDelta)
-
+        let newDelta = viewModel.calculateZoomOut(currentDelta: currentRegion.span.latitudeDelta)
+            let newRegion = MKCoordinateRegion(
+                center: currentRegion.center,
+                span: MKCoordinateSpan(latitudeDelta: newDelta, longitudeDelta: newDelta)
+            )
+            currentRegion = newRegion
             withAnimation(.easeInOut(duration: 0.3)) {
-                cameraPos = .region(MKCoordinateRegion(
-                    center: currentRegion.center,
-                    span: MKCoordinateSpan(latitudeDelta: newDelta, longitudeDelta: newDelta)
-                ))
-            }
+                cameraPos = .region(newRegion)
         }
     }
 

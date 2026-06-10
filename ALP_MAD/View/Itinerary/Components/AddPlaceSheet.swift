@@ -10,7 +10,6 @@ import SwiftData
 
 struct AddPlaceSheet: View {
     let place: LandmarkPlace
-    @ObservedObject var viewModel: ItineraryViewModel
     let onAdd: (String) -> Void
     let onCancel: () -> Void
     let errorMessage: String?
@@ -104,38 +103,7 @@ struct PlaceInfoSection: View {
 }
 
 // MARK: - TIME SELECTION SECTION
-struct TimeSelectionSection: View {
-    @Binding var selectedTime: Date
-    let errorMessage: String?
-    
-    var body: some View {
-        Section("Waktu Kunjungan") {
-            DatePicker(
-                "Jam",
-                selection: $selectedTime,
-                displayedComponents: .hourAndMinute
-            )
-            .tint(.themeTeal)
-            
-            if let error = errorMessage {
-                Text(error)
-                    .font(.caption)
-                    .foregroundColor(.red)
-            }
-        }
-    }
-}
 
-// MARK: - INFO SECTION
-struct InfoSection: View {
-    var body: some View {
-        Section {
-            Text("Urutan kunjungan akan otomatis disesuaikan berdasarkan waktu yang Anda pilih.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-    }
-}
 
 #Preview {
     let place = LandmarkPlace(
@@ -155,7 +123,6 @@ struct InfoSection: View {
     
     return AddPlaceSheet(
         place: place,
-        viewModel: viewModel,
         onAdd: { time in
             print("Added at \(time)")
         },
