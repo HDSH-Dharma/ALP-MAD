@@ -128,6 +128,7 @@ struct InteractiveCanvasView: View {
                     showEditTimeSheet = true
                 }
             )
+            .padding(.bottom, -50)
             
             // MARK: - FLOATING ACTION BUTTONS (Top)
             TopActionBarView(
@@ -154,14 +155,23 @@ struct InteractiveCanvasView: View {
             SearchModalView(
                 viewModel: viewModel,
                 onSelectPlace: { place in
-                    showSearchModal = false
+                    // Set place first
                     selectedPlace = place
                     placeToAdd = place
-                    showAddPlaceSheet = true
+                    
+                    // Center map on selected place
                     cameraPos = .region(MKCoordinateRegion(
                         center: place.coordinate,
                         span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
                     ))
+                    
+                    // Close search modal
+                    showSearchModal = false
+                    
+                    // Show add place sheet dengan delay kecil untuk smooth transition
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        showAddPlaceSheet = true
+                    }
                 }
             )
             .presentationDetents([.large])
@@ -188,6 +198,8 @@ struct InteractiveCanvasView: View {
                     },
                     errorMessage: viewModel.timeConflictError
                 )
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
         }
         // MARK: - EDIT TIME SHEET
@@ -420,12 +432,13 @@ struct BottomSheetView: View {
             )
         }
         .frame(height: sheetHeight + dragOffset)
+        .frame(maxWidth: .infinity)
         .background(
             Color(.systemBackground)
                 .opacity(0.95)
                 .background(.ultraThinMaterial)
         )
-        .cornerRadius(20)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
         .shadow(color: .black.opacity(0.2), radius: 10, y: -2)
         .ignoresSafeArea(edges: .bottom)
         .animation(.spring(), value: isSheetExpanded)
