@@ -8,6 +8,7 @@
 import SwiftUI
 import MapKit
 import SwiftData
+import CoreLocation
 
 struct InteractiveCanvasView: View {
     @Environment(\.dismiss) private var dismiss
@@ -18,10 +19,12 @@ struct InteractiveCanvasView: View {
         center: CLLocationCoordinate2D(latitude: -7.2504, longitude: 112.7424),
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
     ))
+    // Live map center, kept in sync via onMapCameraChange — used for manual pin-drop.
+    @State private var currentCenter = CLLocationCoordinate2D(latitude: -7.2504, longitude: 112.7424)
+    @State private var pinpointMode = false
     
     // MARK: - Modal States
     @State private var showSearchModal: Bool = false
-    @State private var showAddPlaceSheet: Bool = false
     @State private var placeToAdd: LandmarkPlace? = nil
     
     // MARK: - Bottom Sheet States
@@ -33,7 +36,6 @@ struct InteractiveCanvasView: View {
     
     // MARK: - Edit Time States
     @State private var editingDestination: Destination? = nil
-    @State private var showEditTimeSheet: Bool = false
     
     init(trip: Trip, dayNumber: Int, context: ModelContext) {
         _viewModel = State(initialValue: ItineraryViewModel(modelContext: context, trip: trip))
@@ -52,10 +54,8 @@ struct InteractiveCanvasView: View {
                             place: place,
                             isSelected: selectedPlace == place,
                             onTap: {
-                                withAnimation(.spring()) {
-                                    selectedPlace = place
-                                    placeToAdd = place
-                                }
+                                // Setting placeToAdd presents the add sheet via .sheet(item:)
+                                placeToAdd = place
                             }
                         )
                     }
@@ -68,10 +68,7 @@ struct InteractiveCanvasView: View {
                             place: place,
                             isSelected: selectedPlace == place,
                             onTap: {
-                                withAnimation(.spring()) {
-                                    selectedPlace = place
-                                    placeToAdd = place
-                                }
+                                placeToAdd = place
                             }
                         )
                     }
@@ -84,7 +81,6 @@ struct InteractiveCanvasView: View {
                             destination: dest,
                             onTap: {
                                 editingDestination = dest
-                                showEditTimeSheet = true
                             }
                         )
                     }
@@ -93,6 +89,7 @@ struct InteractiveCanvasView: View {
             .ignoresSafeArea()
             .onMapCameraChange { context in
                 viewModel.currentZoomLevel = context.region.span.latitudeDelta
+                currentCenter = context.region.center
             }
             .onTapGesture {
                 if selectedPlace != nil {
@@ -101,7 +98,35 @@ struct InteractiveCanvasView: View {
                     }
                 }
             }
-            
+
+            // MARK: - CENTER PINPOINT CROSSHAIR (manual pin-drop)
+            if pinpointMode {
+                Image(systemName: "plus.viewfinder")
+                    .font(.system(size: 36, weight: .semibold))
+                    .foregroundColor(.themeBlue)
+                    .shadow(radius: 2)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .allowsHitTesting(false)
+
+                VStack {
+                    Spacer()
+                    Button {
+                        dropPinAtCenter()
+                        pinpointMode = false
+                    } label: {
+                        Label("Tandai Titik Ini", systemImage: "mappin.and.ellipse")
+                            .font(.subheadline.bold())
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .background(Color.themeBlue)
+                            .clipShape(Capsule())
+                            .shadow(radius: 4)
+                    }
+                    .padding(.bottom, sheetHeight + dragOffset + 70)
+                }
+            }
+
             // MARK: - OVERLAY UI ELEMENTS
             VStack {
                 Spacer()
@@ -125,7 +150,6 @@ struct InteractiveCanvasView: View {
                 maxHeight: maxHeight,
                 onDestinationTap: { dest in
                     editingDestination = dest
-                    showEditTimeSheet = true
                 }
             )
             .padding(.bottom, -50)
@@ -135,6 +159,10 @@ struct InteractiveCanvasView: View {
                 onSearchTap: {
                     showSearchModal = true
                 },
+                onPinpointTap: {
+                    withAnimation { pinpointMode.toggle() }
+                },
+                isPinpointActive: pinpointMode,
                 onSaveTap: {
                     viewModel.saveContext()
                     dismiss()
@@ -155,22 +183,18 @@ struct InteractiveCanvasView: View {
             SearchModalView(
                 viewModel: viewModel,
                 onSelectPlace: { place in
-                    // Set place first
-                    selectedPlace = place
-                    placeToAdd = place
-                    
                     // Center map on selected place
                     cameraPos = .region(MKCoordinateRegion(
                         center: place.coordinate,
                         span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
                     ))
-                    
-                    // Close search modal
+
+                    // Close search modal, then present the add sheet (item-based).
+                    // The delay lets the search sheet finish dismissing first so
+                    // the two sheets don't fight over presentation.
                     showSearchModal = false
-                    
-                    // Show add place sheet dengan delay kecil untuk smooth transition
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        showAddPlaceSheet = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        placeToAdd = place
                     }
                 }
             )
@@ -178,56 +202,47 @@ struct InteractiveCanvasView: View {
             .presentationDragIndicator(.visible)
         }
         // MARK: - ADD PLACE SHEET
-        .sheet(isPresented: $showAddPlaceSheet) {
-            if let place = placeToAdd {
-                AddPlaceSheet(
-                    place: place,
-                    viewModel: viewModel,
-                    onAdd: { timeString in
-                        let result = viewModel.addDestinationWithTime(place: place, timeString: timeString)
-                        if result.success {
-                            showAddPlaceSheet = false
-                            placeToAdd = nil
-                            selectedPlace = nil
-                        }
-                    },
-                    onCancel: {
-                        showAddPlaceSheet = false
+        .sheet(item: $placeToAdd) { place in
+            AddPlaceSheet(
+                place: place,
+                viewModel: viewModel,
+                onAdd: { timeString in
+                    let result = viewModel.addDestinationWithTime(place: place, timeString: timeString)
+                    if result.success {
                         placeToAdd = nil
                         selectedPlace = nil
-                    },
-                    errorMessage: viewModel.timeConflictError
-                )
-                .presentationDetents([.height(250), .medium, .large])
-                .presentationDragIndicator(.visible)
-                .presentationBackgroundInteraction(.enabled(upThrough: .medium))
-            }
+                    }
+                },
+                onCancel: {
+                    placeToAdd = nil
+                    selectedPlace = nil
+                },
+                errorMessage: viewModel.timeConflictError
+            )
+            .presentationDetents([.height(250), .medium, .large])
+            .presentationDragIndicator(.visible)
+            .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         }
         // MARK: - EDIT TIME SHEET
-        .sheet(isPresented: $showEditTimeSheet) {
-            if let dest = editingDestination {
-                EditTimeSheet(
-                    destination: dest,
-                    viewModel: viewModel,
-                    onSave: { newTimeString in
-                        let result = viewModel.updateDestinationTime(destination: dest, newTimeString: newTimeString)
-                        if result.success {
-                            showEditTimeSheet = false
-                            editingDestination = nil
-                        }
-                    },
-                    onCancel: {
-                        showEditTimeSheet = false
+        .sheet(item: $editingDestination) { dest in
+            EditTimeSheet(
+                destination: dest,
+                viewModel: viewModel,
+                onSave: { newTimeString in
+                    let result = viewModel.updateDestinationTime(destination: dest, newTimeString: newTimeString)
+                    if result.success {
                         editingDestination = nil
-                    },
-                    onDelete: {
-                        viewModel.deleteDestinationById(dest.id)
-                        showEditTimeSheet = false
-                        editingDestination = nil
-                    },
-                    errorMessage: viewModel.timeConflictError
-                )
-            }
+                    }
+                },
+                onCancel: {
+                    editingDestination = nil
+                },
+                onDelete: {
+                    viewModel.deleteDestinationById(dest.id)
+                    editingDestination = nil
+                },
+                errorMessage: viewModel.timeConflictError
+            )
         }
     }
     
@@ -248,12 +263,35 @@ struct InteractiveCanvasView: View {
     private func zoomOut() {
         if let currentRegion = cameraPos.region {
             let newDelta = viewModel.calculateZoomOut(currentDelta: currentRegion.span.latitudeDelta)
-            
+
             withAnimation(.easeInOut(duration: 0.3)) {
                 cameraPos = .region(MKCoordinateRegion(
                     center: currentRegion.center,
                     span: MKCoordinateSpan(latitudeDelta: newDelta, longitudeDelta: newDelta)
                 ))
+            }
+        }
+    }
+
+    // MARK: - Manual Pin Drop
+    /// Creates a place at the current map center (reverse-geocoded for a name)
+    /// and opens the add sheet so the user can schedule it.
+    private func dropPinAtCenter() {
+        let center = currentCenter
+        let location = CLLocation(latitude: center.latitude, longitude: center.longitude)
+        CLGeocoder().reverseGeocodeLocation(location) { placemarks, _ in
+            let mark = placemarks?.first
+            let name = mark?.name ?? mark?.locality ?? "Lokasi Pilihan"
+            let area = mark?.locality ?? mark?.administrativeArea ?? ""
+            let place = LandmarkPlace(
+                name: name,
+                latitude: center.latitude,
+                longitude: center.longitude,
+                shortDesc: area.isEmpty ? "Titik dari peta" : area,
+                isUMKM: false
+            )
+            DispatchQueue.main.async {
+                placeToAdd = place
             }
         }
     }
@@ -359,8 +397,10 @@ struct ZoomControlsView: View {
 // MARK: - TOP ACTION BAR VIEW
 struct TopActionBarView: View {
     let onSearchTap: () -> Void
+    let onPinpointTap: () -> Void
+    let isPinpointActive: Bool
     let onSaveTap: () -> Void
-    
+
     var body: some View {
         VStack {
             HStack(spacing: 12) {
@@ -378,7 +418,21 @@ struct TopActionBarView: View {
                         .clipShape(Circle())
                         .shadow(radius: 3)
                 }
-                
+
+                // Pinpoint Button (manual pin-drop mode)
+                Button(action: onPinpointTap) {
+                    Image(systemName: "mappin.and.ellipse")
+                        .font(.title3.bold())
+                        .foregroundColor(isPinpointActive ? .white : .themeBlue)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            (isPinpointActive ? Color.themeBlue : Color.white.opacity(0.9))
+                                .background(.ultraThinMaterial)
+                        )
+                        .clipShape(Circle())
+                        .shadow(radius: 3)
+                }
+
                 Spacer()
                 
                 // Save Button
@@ -498,10 +552,9 @@ struct BottomSheetHeader: View {
                 .foregroundColor(.themeDarkText)
             Spacer()
             if destinationCount > 0 {
-                Button("Edit") {
-                    // Toggle edit mode if needed
-                }
-                .foregroundColor(.themeGold)
+                Text("\(destinationCount) tempat")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
         .padding(.horizontal)
