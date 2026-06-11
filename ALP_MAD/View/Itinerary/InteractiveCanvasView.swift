@@ -92,7 +92,6 @@ struct InteractiveCanvasView: View {
                             destination: dest,
                             onTap: {
                                 editingDestination = dest
-                                showEditTimeSheet = true
                             }
                         )
                     }
@@ -103,7 +102,7 @@ struct InteractiveCanvasView: View {
                 viewModel.currentZoomLevel = context.region.span.latitudeDelta
                 currentCenter = context.region.center
                 currentRegion = context.region
-
+                
             }
             .onTapGesture {
                 if selectedPlace != nil {
@@ -136,7 +135,6 @@ struct InteractiveCanvasView: View {
                 maxHeight: maxHeight,
                 onDestinationTap: { dest in
                     editingDestination = dest
-                    showEditTimeSheet = true
                 }
             )
             .padding(.bottom, -50)
@@ -206,37 +204,34 @@ struct InteractiveCanvasView: View {
                     placeToAdd = nil
                     selectedPlace = nil
                 },
-                    errorMessage: viewModel.timeConflictError
-                )
-                .presentationDetents([.height(250), .medium, .large])
-                .presentationDragIndicator(.visible)
-                .presentationBackgroundInteraction(.enabled(upThrough: .medium))
-            }
+                errorMessage: viewModel.timeConflictError
+            )
+            .presentationDetents([.height(250), .medium, .large])
+            .presentationDragIndicator(.visible)
+            .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+        }
         // MARK: - EDIT TIME SHEET
-        .sheet(isPresented: $showEditTimeSheet) {
-            if let dest = editingDestination {
-                EditTimeSheet(
-                    destination: dest,
-                    viewModel: viewModel,
-                    onSave: { newTimeString in
-                        let result = viewModel.updateDestinationTime(destination: dest, newTimeString: newTimeString)
-                        if result.success {
-                            showEditTimeSheet = false
-                            editingDestination = nil
-                        }
-                    },
-                    onCancel: {
-                        showEditTimeSheet = false
+        .sheet(item: $editingDestination) { dest in
+            EditTimeSheet(
+                destination: dest,
+                viewModel: viewModel,
+                onSave: { newTimeString in
+                    let result = viewModel.updateDestinationTime(destination: dest, newTimeString: newTimeString)
+                    if result.success {
                         editingDestination = nil
-                    },
-                    onDelete: {
-                        viewModel.deleteDestinationById(dest.id)
-                        showEditTimeSheet = false
-                        editingDestination = nil
-                    },
-                    errorMessage: viewModel.timeConflictError
-                )
-            }
+                    }
+                },
+                onCancel: {
+                    editingDestination = nil
+                },
+                onDelete: {
+                    viewModel.deleteDestinationById(dest.id)
+                    editingDestination = nil
+                },
+                errorMessage: viewModel.timeConflictError
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
     }
     
@@ -504,13 +499,7 @@ struct BottomSheetHeader: View {
             Text("Jadwal Aktivitas")
                 .font(.headline)
                 .foregroundColor(.themeDarkText)
-            Spacer()
-            if destinationCount > 0 {
-                Button("Edit") {
-                    // Toggle edit mode if needed
-                }
-                .foregroundColor(.themeGold)
-            }
+        
         }
         .padding(.horizontal)
         .padding(.bottom, 8)

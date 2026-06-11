@@ -176,6 +176,12 @@ struct DeleteSection: View {
 }
 
 #Preview {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Trip.self, Destination.self, configurations: config)
+    
+    let dummyTrip = Trip(title: "Test", startDate: Date(), endDate: Date())
+    container.mainContext.insert(dummyTrip)
+    
     let dest = Destination(
         name: "Tugu Pahlawan",
         latitude: -7.2458,
@@ -186,26 +192,18 @@ struct DeleteSection: View {
         timeString: "09:00",
         activityDesc: "Monumen bersejarah perjuangan pahlawan."
     )
-    
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Trip.self, Destination.self, configurations: config)
-    let dummyTrip = Trip(title: "Test", startDate: Date(), endDate: Date())
-    container.mainContext.insert(dummyTrip)
+    container.mainContext.insert(dest)  // ← wajib
+    dummyTrip.destinations.append(dest)
     
     let viewModel = ItineraryViewModel(modelContext: container.mainContext, trip: dummyTrip)
     
     return EditTimeSheet(
         destination: dest,
         viewModel: viewModel,
-        onSave: { time in
-            print("Saved: \(time)")
-        },
-        onCancel: {
-            print("Cancelled")
-        },
-        onDelete: {
-            print("Deleted")
-        },
+        onSave: { print("Saved: \($0)") },
+        onCancel: { print("Cancelled") },
+        onDelete: { print("Deleted") },
         errorMessage: nil
     )
+    .modelContainer(container)  // ← wajib
 }

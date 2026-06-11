@@ -14,15 +14,15 @@ import Combine
 final class ItineraryViewModel: ObservableObject {
     var modelContext: ModelContext
     var selectedTrip: Trip
-    var selectedDay: Int = 1
-    
+    @Published var selectedDay: Int = 1
+        
     // MARK: - Search State
-    var searchText: String = ""
-    var searchResults: [LandmarkPlace] = []
-    var isSearching: Bool = false
+    @Published var searchText: String = ""
+    @Published var searchResults: [LandmarkPlace] = []
+    @Published var isSearching: Bool = false
     
     // MARK: - Time Conflict Error
-    var timeConflictError: String? = nil
+    @Published var timeConflictError: String? = nil
     
     // MARK: - Discoverable Places
     var discoverablePlaces: [LandmarkPlace] = [
@@ -32,7 +32,7 @@ final class ItineraryViewModel: ObservableObject {
     ]
     
     // MARK: - Zoom State
-    var currentZoomLevel: Double = 0.05
+    @Published var currentZoomLevel: Double = 0.05
     
     init(modelContext: ModelContext, trip: Trip) {
         self.modelContext = modelContext
